@@ -10,8 +10,8 @@ object BuildSettings {
     scalaVersion := "2.10.1",
     scalacOptions += "-deprecation",
     scalacOptions += "-feature",
-    libraryDependencies ++= Seq(),
-    resolvers := Seq(typesafeRepo, projectRepo)
+    libraryDependencies ++= Seq(spring, springDao, springJdbc, dbcp, h2, flyway, jodaTime),
+    resolvers := Seq(springMilestoneRepo, localRepo)
   )
 
   val projectSettings = Defaults.defaultSettings ++ globalSettings
@@ -19,10 +19,18 @@ object BuildSettings {
 
 object Resolvers {
   val typesafeRepo = "Typesafe Repository" at "http://repo.typesafe.com/typesafe/releases/"
-  val projectRepo = Resolver.file("project-repo", file("localrepo"))(Resolver.ivyStylePatterns)
+  val springMilestoneRepo = "repo.springsource.org-milestone" at "https://repo.springsource.org/libs-milestone"
+  val localRepo = Resolver.file("localRepo", file("localRepo"))(Resolver.mavenStylePatterns)
 }
 
 object Dependencies {
+  val dbcp = "commons-dbcp" % "commons-dbcp" % "1.4"
+  val spring = "org.springframework.scala" % "spring-scala" % "1.0.0.M2"
+  val h2 = "com.h2database" % "h2" % "1.3.171"
+  val springDao = "org.springframework" % "spring-dao" % "2.0.8"
+  val springJdbc = "org.springframework" % "spring-jdbc" % "3.2.2.RELEASE"
+  val flyway = "com.googlecode.flyway" % "flyway-core" % "2.1.1"
+  val jodaTime = "org.scalaj" %% "scalaj-time" % "0.6"
 }
 
 object ApplicationBuild extends Build {
@@ -34,13 +42,5 @@ object ApplicationBuild extends Build {
   val appName         = "tellmemore"
   val appVersion      = "0.1-SNAPSHOT"
 
-  lazy val commons = Project("commons", file("commons"),
-                        settings = projectSettings ++
-                                   Seq(libraryDependencies ++= Seq(anorm))
-  )
-
-  lazy val server = play.Project("server", appVersion, Seq(), path=file("server")).settings(
-  ) dependsOn(commons)
-
-  lazy val main = Project(appName, file("."), settings = projectSettings) aggregate(commons, server)
+  lazy val main = Project("tellmemore", file("."))
 }
