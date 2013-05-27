@@ -1,5 +1,6 @@
+select, input {width: 150px; margin-bottom: 0 !important; line-height: 25px !important; height: 25px !important;}
+
 .search-box {padding: 10px;}
-.padded {padding: 10px;}
 .search-box .explain-text {font-style: italic; color: #898989;}
 .search-box .general-buttons {margin-top: 10px;}
 .search-box .component-controls {padding: 10px 0;}
@@ -30,3 +31,4 @@
 }
 
 .search-box .search-components .search-item:first-child .or-separator {display: none;}
+.search-box .search-components .search-item-wrapper {padding: 20px 10px; }

@@ -2,7 +2,9 @@
  * Component that contains inside itself simple search controllers
  * that gathered one with each other using 'OR',
  * Component copy-paste a little the "and_item" behavior but it is likely to change,
- * so they are separate
+ * so they are separate.
+ *
+ * TODO Still concerned about some code duplication. Probably need to be refactored.
  *
  * Author: bearz
  */
@@ -45,7 +47,8 @@ define([
          * @private
          */
         _addSearchComponent: function() {
-            var search_component = new SearchSelectComponent({remove_callback: this._removeSearchComponent});
+            var search_component = new SearchSelectComponent({remove_callback: this._removeSearchComponent,
+                model: this.model});
             this.components_container.append(search_component.el); // adding element to the container
             search_component.render();
             this.search_components.push(search_component);

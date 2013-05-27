@@ -2,7 +2,35 @@
     OR
 </div>
 <div class="span8">
-    Select your query items TODO
+    <div class="search-item-wrapper">
+        <% if (state === "start") { %>
+        <span class="explain-text"> Select </span>
+            <select class="events-selector">
+                <option value="">------Event-----</option>
+                <% for (var i=0; i < events.length; i++) {
+                    var item = events[i]; %>
+                    <option value="<%= item %>"><%= item %></option>
+                <% } %>
+            </select>
+        <span class="explain-text">or</span>
+            <select class="facts-selector">
+                <option value="">-----User Fact-----</option>
+                <% for (var i=0; i < facts.length; i++) {
+                    var item = facts[i]; %>
+                    <option value="<%= item %>"><%= item %></option>
+                <% } %>
+            </select>
+        <% } else if (state === "event" && type === "number") { %>
+            <span class="explain-text">Event "<%= name %>" happened</span>
+            <select class="type-selector">
+                <option value="more_then"> More then </option>
+                <option value="less_then"> Less then </option>
+                <option value="exactly"> Exactly </option>
+            </select>
+            <input class="number-of-times" type="text" value="1">
+            <span class="explain-text">times</span>
+        <% } %>
+    </div>
 </div>
 <div class="span1 remove-item">
     <button class="btn-link remove-search-item"><i class="icon-remove"></i></button>

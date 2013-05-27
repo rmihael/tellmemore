@@ -11,8 +11,9 @@ define([
     'underscore',
     'base_view',
     'text!templates/search_template',
-    'components/search/js/search_group'
-], function(Backbone, $, _, BaseView, SearchTemplate, SearchGroupComponent) {
+    'components/search/js/search_group',
+    'models/search_properties_model'
+], function(Backbone, $, _, BaseView, SearchTemplate, SearchGroupComponent, PropertiesModel) {
     var SearchView = BaseView.extend({
         template: _.template(SearchTemplate),
         events: {
@@ -21,6 +22,7 @@ define([
         initialize: function() {
             _.bindAll(this, "_removeSearchComponent");
             this.search_components = []; // will be used for gathering data later
+            this.properties_model = new PropertiesModel();
         },
         render: function() {
             this.$el.html(this.template());
@@ -34,7 +36,8 @@ define([
          * @private
          */
         _addSearchComponent: function() {
-            var search_component = new SearchGroupComponent({remove_callback: this._removeSearchComponent});
+            var search_component = new SearchGroupComponent({remove_callback: this._removeSearchComponent,
+                model: this.properties_model});
             this.components_container.append(search_component.el); // adding element to the container
             search_component.render();
             this.search_components.push(search_component);
