@@ -14,7 +14,9 @@ define([
     var AppView = BaseView.extend({
         el: "body",
         template: _.template(AppTemplate),
-
+        initialize: function() {
+            this.search_components = []; // will be used for gathering data later
+        },
         /**
          * Here is the basic rendering happened.
          * App View renders itself DOM document and
@@ -25,6 +27,8 @@ define([
             // creating search view and specifying element for it
             this.search_view = new SearchView({el: "#module_container"});
             this.search_view.render();
+
+            return this;
         }
     });
 
