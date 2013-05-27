@@ -1,4 +1,6 @@
 import org.apache.commons.dbcp.BasicDataSource
+import org.springframework.jdbc.datasource.{TransactionAwareDataSourceProxy, LazyConnectionDataSourceProxy,
+                                            DataSourceTransactionManager}
 import org.springframework.scala.context.function.FunctionalConfiguration
 import com.googlecode.flyway.core.Flyway
 
@@ -11,14 +13,21 @@ class ContextConfiguration extends FunctionalConfiguration {
     val dataSource = new BasicDataSource()
     dataSource.setDriverClassName("org.h2.Driver")
     dataSource.setUrl("jdbc:h2:mem:tellmemore;MODE=POSTGRESQL")
-    dataSource
+    new TransactionAwareDataSourceProxy(new LazyConnectionDataSourceProxy(dataSource))
+  }
+
+  val txManager = bean("transactionManager") {
+    val txManager = new DataSourceTransactionManager()
+    txManager.setDataSource(dataSource())
+    txManager
   }
 
   val flyway = bean("flyway") {
     val flyway = new Flyway()
     flyway.setDataSource(dataSource())
-    flyway.migrate()
     flyway
+  } init {
+    _.migrate()
   }
 
   val clientDao = bean("clientDao") {
@@ -26,7 +35,7 @@ class ContextConfiguration extends FunctionalConfiguration {
   }
 
   bean("clientModel") {
-    ClientModel(clientDao())
+    ClientModel(clientDao(), txManager())
   }
 
   val userDao = bean("userDao") {
@@ -34,7 +43,7 @@ class ContextConfiguration extends FunctionalConfiguration {
   }
 
   bean("userModel") {
-    UserModel(userDao())
+    UserModel(userDao(), txManager())
   }
 
   val eventDao = bean("eventDao") {
@@ -42,6 +51,6 @@ class ContextConfiguration extends FunctionalConfiguration {
   }
 
   bean("eventModel") {
-    EventModel(eventDao())
+    EventModel(eventDao(), txManager())
   }
 }

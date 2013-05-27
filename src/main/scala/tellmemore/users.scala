@@ -7,16 +7,24 @@ import javax.sql.DataSource
 import anorm.SqlParser._
 import anorm._
 import org.scala_tools.time.Imports._
+import org.springframework.transaction.PlatformTransactionManager
+import org.springframework.scala.transaction.support.TransactionManagement
 
 import tellmemore.{User, UserId}
 import tellmemore.infrastructure.DB
 
-case class UserModel(userDao: UserDao) {
-  def getById(id: UserId): Either[Exception, Option[User]] = userDao.getById(id)
+case class UserModel(userDao: UserDao, transactionManager: PlatformTransactionManager) extends TransactionManagement {
+  def getById(id: UserId): Either[Exception, Option[User]] = transactional() { txStatus =>
+    userDao.getById(id)
+  }
 
-  def getAllByClientId(clientId: String): Either[Exception, Seq[User]] = userDao.getAllByClientId(clientId)
+  def getAllByClientId(clientId: String): Either[Exception, Seq[User]] = transactional() { txStatus =>
+    userDao.getAllByClientId(clientId)
+  }
 
-  def bulkInsert(users: Seq[User]): Either[Exception, Seq[User]] = userDao.bulkInsert(users)
+  def bulkInsert(users: Seq[User]): Either[Exception, Seq[User]] = transactional() { txStatus =>
+    userDao.bulkInsert(users)
+  }
 
   def insert(user: User): Either[Exception, Option[User]] = bulkInsert(Seq(user)).right map {_.headOption}
 }

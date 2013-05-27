@@ -10,7 +10,7 @@ object BuildSettings {
     scalaVersion := "2.10.1",
     scalacOptions += "-deprecation",
     scalacOptions += "-feature",
-    libraryDependencies ++= Seq(spring, springDao, springJdbc, dbcp, h2, flyway, jodaTime, anorm),
+    libraryDependencies ++= Seq(spring, springJdbc, dbcp, h2, flyway, jodaTime, anorm),
     resolvers := Seq(springMilestoneRepo, localRepo)
   )
 
@@ -27,7 +27,6 @@ object Dependencies {
   val dbcp = "commons-dbcp" % "commons-dbcp" % "1.4"
   val spring = "org.springframework.scala" % "spring-scala" % "1.0.0.M2"
   val h2 = "com.h2database" % "h2" % "1.3.171"
-  val springDao = "org.springframework" % "spring-dao" % "2.0.8"
   val springJdbc = "org.springframework" % "spring-jdbc" % "3.2.2.RELEASE"
   val flyway = "com.googlecode.flyway" % "flyway-core" % "2.1.1"
   val jodaTime = "org.scalaj" %% "scalaj-time" % "0.6"

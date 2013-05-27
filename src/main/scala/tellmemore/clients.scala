@@ -10,15 +10,25 @@ import anorm.SqlParser._
 
 import tellmemore.infrastructure.DB
 import tellmemore.{ClientData, Client}
+import org.springframework.transaction.PlatformTransactionManager
+import org.springframework.scala.transaction.support.TransactionManagement
 
-case class ClientModel(clientDao: ClientDao) {
-  def getById(id: String): Either[Exception, Option[Client]] = clientDao.getById(id)
+case class ClientModel(clientDao: ClientDao, transactionManager: PlatformTransactionManager) extends TransactionManagement {
+  def getById(id: String): Either[Exception, Option[Client]] = transactional() { txStatus =>
+    clientDao.getById(id)
+  }
 
-  def getAll: Either[Exception, Seq[Client]] = clientDao.getAll
+  def getAll: Either[Exception, Seq[Client]] = transactional() { txStatus =>
+    clientDao.getAll
+  }
 
-  def create(clientData: ClientData): Either[Exception, Option[Client]] = clientDao.create(clientData)
+  def create(clientData: ClientData): Either[Exception, Option[Client]] = transactional() { txStatus =>
+    clientDao.create(clientData)
+  }
 
-  def deleteById(id: String): Option[Exception] = clientDao.deleteById(id)
+  def deleteById(id: String): Option[Exception] = transactional() { txStatus =>
+    clientDao.deleteById(id)
+  }
 }
 
 trait ClientDao {
@@ -61,7 +71,7 @@ case class PostgreSqlClientDao(dataSource: DataSource) extends ClientDao {
   def create(clientData: ClientData): Either[Exception, Option[Client]] = {
     try {
       val id: Option[Long] = DB.withConnection(dataSource) { implicit connection =>
-        SQL("INSERT INTO clients(name, created, last_login) VALUES ({name}, {created}, {last_login)")
+        SQL("INSERT INTO clients(name, created, last_login) VALUES ({name}, {created}, {last_login})")
           .on("name" -> clientData.name,
               "created" -> clientData.created.millis / 1000,
               "last_login" -> clientData.lastLogin.millis / 1000)
