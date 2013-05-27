@@ -11,7 +11,7 @@ object BuildSettings {
     scalacOptions += "-deprecation",
     scalacOptions += "-feature",
     libraryDependencies ++= Seq(spring, springJdbc, dbcp, h2, flyway, jodaTime, anorm),
-    resolvers := Seq(springMilestoneRepo, localRepo)
+    resolvers := Seq(springMilestoneRepo, typesafeRepo, localRepo)
   )
 
   val projectSettings = Defaults.defaultSettings ++ globalSettings
