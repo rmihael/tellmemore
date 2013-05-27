@@ -1,9 +1,10 @@
 import org.apache.commons.dbcp.BasicDataSource
 import org.springframework.scala.context.function.FunctionalConfiguration
-import org.springframework.scala.jdbc.core.JdbcTemplate
 import com.googlecode.flyway.core.Flyway
 
-import tellmemore.clients.{ClientDao, ClientModel}
+import tellmemore.clients.{PostgreSqlClientDao, ClientModel}
+import tellmemore.events.{EventModel, PostgreSqlEventDao}
+import tellmemore.users.{UserModel, PostgreSqlUserDao}
 
 class ContextConfiguration extends FunctionalConfiguration {
   val dataSource = bean("dataSource") {
@@ -20,16 +21,27 @@ class ContextConfiguration extends FunctionalConfiguration {
     flyway
   }
 
-  val jdbcTemplate = bean("jdbcTemplate") {
-    val depends = Seq(flyway)
-    new JdbcTemplate(dataSource())
-  }
-
   val clientDao = bean("clientDao") {
-    ClientDao(jdbcTemplate())
+    PostgreSqlClientDao(dataSource())
   }
 
   bean("clientModel") {
     ClientModel(clientDao())
+  }
+
+  val userDao = bean("userDao") {
+    PostgreSqlUserDao(dataSource())
+  }
+
+  bean("userModel") {
+    UserModel(userDao())
+  }
+
+  val eventDao = bean("eventDao") {
+    PostgreSqlEventDao(dataSource())
+  }
+
+  bean("eventModel") {
+    EventModel(eventDao())
   }
 }
