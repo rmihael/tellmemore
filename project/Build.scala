@@ -20,7 +20,7 @@ object BuildSettings {
 object Resolvers {
   val typesafeRepo = "Typesafe Repository" at "http://repo.typesafe.com/typesafe/releases/"
   val springMilestoneRepo = "repo.springsource.org-milestone" at "https://repo.springsource.org/libs-milestone"
-  val localRepo = Resolver.file("localRepo", file("localRepo"))(Resolver.mavenStylePatterns)
+  val localRepo = Resolver.file("localRepo", file("localRepo"))(Resolver.ivyStylePatterns)
 }
 
 object Dependencies {
