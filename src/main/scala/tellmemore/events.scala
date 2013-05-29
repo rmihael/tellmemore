@@ -14,24 +14,30 @@ import tellmemore.{TimeSpan, UserId, Event}
 import org.springframework.transaction.PlatformTransactionManager
 
 case class EventModel(eventDao: EventDao, transactionManager: PlatformTransactionManager) extends TransactionManagement {
-  def getByUserIdAndTimestamp(userId: UserId, timeSpan: TimeSpan): Either[Exception, Seq[Event]] =
-    transactional(readOnly = true) {txStatus =>
+  def getByUserIdAndTimestamp(userId: UserId, timeSpan: TimeSpan): Set[Event] =
+    transactional(readOnly = true) { txStatus =>
       eventDao.getByUserIdAndTimestamp(userId, timeSpan.start, timeSpan.end)
     }
 
-  def getAllByClientId(clientId: String): Either[Exception, Seq[Event]] = eventDao.getAllByClientId(clientId)
+  def getAllByClientId(clientId: String): Set[Event] = eventDao.getAllByClientId(clientId)
 
-  def bulkInsert(events: Seq[Event]): Either[Exception, Seq[Event]] = transactional() {txStatus =>
-    eventDao.bulkInsert(events)
+  def bulkInsert(events: Set[Event]) {
+    transactional() { txStatus =>
+      eventDao.bulkInsert(events)
+    }
   }
 
-  def insert(user: Event): Either[Exception, Option[Event]] = bulkInsert(Seq(user)).right map {_.headOption}
+  def insert(event: Event) {
+    bulkInsert(Set(event))
+  }
+
+  def getEventNames(clientId: String): Set[String] = ???
 }
 
 trait EventDao {
-  def getByUserIdAndTimestamp(userId: UserId, start: DateTime, end: DateTime): Either[Exception, Seq[Event]]
-  def getAllByClientId(clientId: String): Either[Exception, Seq[Event]]
-  def bulkInsert(events: Seq[Event]): Either[Exception, Seq[Event]]
+  def getByUserIdAndTimestamp(userId: UserId, start: DateTime, end: DateTime): Set[Event]
+  def getAllByClientId(clientId: String): Set[Event]
+  def bulkInsert(events: Set[Event])
 }
 
 case class PostgreSqlEventDao(dataSource: DataSource) extends EventDao {
@@ -44,46 +50,30 @@ case class PostgreSqlEventDao(dataSource: DataSource) extends EventDao {
                                                            eventName, new DateTime(tstamp * 1000L))
       }
 
-  def getByUserIdAndTimestamp(userId: UserId, start: DateTime, end: DateTime): Either[Exception, Seq[Event]] = {
-    try {
-      Right(DB.withConnection(dataSource) { implicit connection =>
-        SQL("""SELECT id, client_id, external_id, human_readable_id, created FROM users
-               WHERE client_id={client_id} AND external_id={external_id}""")
-          .on("external_id" -> userId.externalId, "client_id" -> userId.clientId)
-          .as(simple *)
-      })
-    } catch {
-      case exc: Exception => Left(exc)
+  def getByUserIdAndTimestamp(userId: UserId, start: DateTime, end: DateTime): Set[Event] =
+    DB.withConnection(dataSource) { implicit connection =>
+      SQL("""SELECT id, client_id, external_id, human_readable_id, created FROM users
+           WHERE client_id={client_id} AND external_id={external_id}""")
+        .on("external_id" -> userId.externalId, "client_id" -> userId.clientId)
+        .as(simple *).toSet
     }
+
+  def getAllByClientId(clientId: String): Set[Event] = DB.withConnection(dataSource) { implicit connection =>
+    SQL("SELECT id, client_id, external_id, human_readable_id, created FROM users WHERE client_id={client_id}")
+      .on("client_id" -> clientId)
+      .as(simple *).toSet
   }
 
-  def getAllByClientId(clientId: String): Either[Exception, Seq[Event]] = {
-    try {
-      Right(DB.withConnection(dataSource) { implicit connection =>
-        SQL("SELECT id, client_id, external_id, human_readable_id, created FROM users WHERE client_id={client_id}")
-          .on("client_id" -> clientId)
-          .as(simple *)
-      })
-    } catch {
-      case exc: Exception => Left(exc)
-    }
-  }
-
-  def bulkInsert(events: Seq[Event]): Either[Exception, Seq[Event]] = {
-    try {
-      Right(DB.withConnection(dataSource) { implicit connection =>
-        val insertQuery = SQL(
-          """INSERT INTO events(client_id, external_user_id, event_name, tstamp)
-             VALUES({client_id}, {external_user_id}, {event_name}, {tstamp})""")
-        val batchInsert = (insertQuery.asBatch /: events) {
-          (sql, event) => sql.addBatchParams(event.userId.clientId, event.userId.externalId,
-                                            event.eventName, event.tstamp.millis / 1000)
-        }
-        batchInsert.execute()
-        events
-      })
-    } catch {
-      case exc: Exception => Left(exc)
+  def bulkInsert(events: Set[Event]) {
+    DB.withConnection(dataSource) { implicit connection =>
+      val insertQuery = SQL(
+        """INSERT INTO events(client_id, external_user_id, event_name, tstamp)
+         VALUES({client_id}, {external_user_id}, {event_name}, {tstamp})""")
+      val batchInsert = (insertQuery.asBatch /: events) {
+        (sql, event) => sql.addBatchParams(event.userId.clientId, event.userId.externalId,
+          event.eventName, event.happened.millis / 1000)
+      }
+      batchInsert.execute()
     }
   }
 }
