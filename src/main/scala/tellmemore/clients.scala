@@ -22,7 +22,7 @@ case class ClientModel(clientDao: ClientDao, transactionManager: PlatformTransac
     clientDao.getAll
   }
 
-  def create(client: Client): Option[Client] = transactional() { txStatus =>
+  def create(client: Client) = transactional() { txStatus =>
     clientDao.create(client)
   }
 
@@ -37,7 +37,7 @@ case class ClientModel(clientDao: ClientDao, transactionManager: PlatformTransac
 trait ClientDao {
   def getById(id: String): Option[Client]
   def getAll: Set[Client]
-  def create(client: Client): Option[Client]
+  def create(client: Client)
   def deleteById(id: String)
 }
 
@@ -50,28 +50,27 @@ case class PostgreSqlClientDao(dataSource: DataSource) extends ClientDao {
     }
 
   def getById(id: String): Option[Client] = DB.withConnection(dataSource) { implicit connection =>
-    SQL("SELECT email, name, created FROM clients WHERE id={id}").on("id" -> id).as(simple.singleOpt)
+    SQL("SELECT email, name, created FROM clients WHERE email={email}").on("email" -> id).as(simple.singleOpt)
   }
 
   def getAll: Set[Client] = DB.withConnection(dataSource) { implicit connection =>
     SQL("SELECT email, name, created FROM clients").as(simple *).toSet
   }
 
-  def create(client: Client): Option[Client] = {
-    val id: Option[Long] = DB.withConnection(dataSource) { implicit connection =>
+  def create(client: Client) {
+    DB.withConnection(dataSource) { implicit connection =>
       SQL("INSERT INTO clients(email, name, created) VALUES ({email}, {name}, {created})")
         .on("email" -> client.id,
             "name" -> client.name,
             "created" -> client.created.millis / 1000)
         .executeInsert()
     }
-    id map {_ => client}
   }
 
   def deleteById(id: String) {
     DB.withConnection(dataSource) {
       implicit connection =>
-        SQL("DELETE FROM clients WHERE id={id").on("id" -> id).executeUpdate()
+        SQL("DELETE FROM clients WHERE email={email}").on("email" -> id).executeUpdate()
     }
   }
 }
