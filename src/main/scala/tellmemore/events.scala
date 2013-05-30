@@ -68,7 +68,7 @@ case class PostgreSqlEventDao(dataSource: DataSource) extends EventDao {
     DB.withConnection(dataSource) { implicit connection =>
       val insertQuery = SQL(
         """INSERT INTO events(client_id, external_user_id, event_name, tstamp)
-         VALUES({client_id}, {external_user_id}, {event_name}, {tstamp})""")
+         VALUES((SELECT id FROM clients WHERE email={client_id}), {external_user_id}, {event_name}, {tstamp})""")
       val batchInsert = (insertQuery.asBatch /: events) {
         (sql, event) => sql.addBatchParams(event.userId.clientId, event.userId.externalId,
           event.eventName, event.happened.millis / 1000)
