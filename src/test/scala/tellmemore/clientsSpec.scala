@@ -2,12 +2,15 @@ package tellmemore.clients
 
 import org.specs2.mock.Mockito
 import org.specs2.mutable._
+import org.specs2.specification.Scope
 import org.springframework.transaction.PlatformTransactionManager
 import org.scala_tools.time.Imports._
 
 import tellmemore.Client
 
-class clientModelSpec extends Specification with Mockito {
+class ClientModelSpec extends Specification with Mockito {
+  isolated
+
   val txManager = mock[PlatformTransactionManager]
   val clientDao = mock[ClientDao]
   val clientModel = ClientModel(clientDao, txManager)

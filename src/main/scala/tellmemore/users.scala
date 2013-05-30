@@ -12,6 +12,7 @@ import org.springframework.scala.transaction.support.TransactionManagement
 
 import tellmemore.{User, UserId}
 import tellmemore.infrastructure.DB
+import java.sql.SQLException
 
 case class UserModel(userDao: UserDao, transactionManager: PlatformTransactionManager) extends TransactionManagement {
   def getById(id: UserId): Option[User] = transactional() { txStatus =>
@@ -22,7 +23,7 @@ case class UserModel(userDao: UserDao, transactionManager: PlatformTransactionMa
     userDao.getAllByClientId(clientId)
   }
 
-  def bulkInsert(users: Set[User]) {
+  def bulkInsert(users: Set[User]): Either[String, Int] = {
     transactional() { txStatus =>
       userDao.bulkInsert(users)
     }
@@ -36,7 +37,7 @@ case class UserModel(userDao: UserDao, transactionManager: PlatformTransactionMa
 trait UserDao {
   def getById(id: UserId): Option[User]
   def getAllByClientId(clientId: String): Set[User]
-  def bulkInsert(users: Set[User])
+  def bulkInsert(users: Set[User]): Either[String, Int]
 }
 
 case class PostgreSqlUserDao(dataSource: DataSource) extends UserDao {
@@ -60,13 +61,29 @@ case class PostgreSqlUserDao(dataSource: DataSource) extends UserDao {
     .toSet
   }
 
-  def bulkInsert(users: Set[User]) {
-    val insertQuery = SQL(
-      """INSERT INTO users(client_id, external_id, created)
-         VALUES((SELECT id FROM clients WHERE email={client_id}), {external_id}, {created})""")
-    val batchInsert = (insertQuery.asBatch /: users) {
-      (sql, user) => sql.addBatchParams(user.id.clientId, user.id.externalId, user.created.millis / 1000)
+  def bulkInsert(users: Set[User]): Either[String, Int] = {
+    require(Set(users map {_.id.clientId}).size <= 1)
+    users.size match {
+      case 0 => Right(0)
+      case _ => {
+        val insertQuery = SQL(
+          """INSERT INTO users(client_id, external_id, created)
+             VALUES((SELECT id FROM clients WHERE email={client_id}), {external_id}, {created})""")
+        val batchInsert = (insertQuery.asBatch /: users) {
+          (sql, user) => sql.addBatchParams(user.id.clientId, user.id.externalId, user.created.millis / 1000)
+        }
+        try {
+          DB.withConnection(dataSource) { implicit connection =>
+            batchInsert.execute()
+            Right(users.size)
+          }
+        } catch {
+          // users.head can't fail because there're at least one item in the set
+          case exc: SQLException if exc.getSQLState == SQL_STATE_NULLS_NOT_ALLOWED => Left(users.head.id.clientId)
+        }
+      }
     }
-    DB.withConnection(dataSource) { implicit connection => batchInsert.execute() }
   }
+
+  private[this] val SQL_STATE_NULLS_NOT_ALLOWED = "23502"
 }
