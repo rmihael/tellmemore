@@ -10,7 +10,7 @@ object BuildSettings {
     scalaVersion := "2.10.1",
     scalacOptions += "-deprecation",
     scalacOptions += "-feature",
-    libraryDependencies ++= Seq(spring, springJdbc, dbcp, h2, flyway, jodaTime, anorm),
+    libraryDependencies ++= Seq(spring, springJdbc, dbcp, h2, flyway, jodaTime, anorm, specs2),
     resolvers := Seq(springMilestoneRepo, typesafeRepo, localRepo)
   )
 
@@ -31,6 +31,7 @@ object Dependencies {
   val flyway = "com.googlecode.flyway" % "flyway-core" % "2.1.1"
   val jodaTime = "org.scalaj" %% "scalaj-time" % "0.6"
   val anorm = "play" %% "anorm" % "2.1.1"
+  val specs2 = "org.specs2" %% "specs2" % "1.13" % "test"
 }
 
 object ApplicationBuild extends Build {
