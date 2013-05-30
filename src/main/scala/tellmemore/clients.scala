@@ -9,7 +9,7 @@ import anorm._
 import anorm.SqlParser._
 
 import tellmemore.infrastructure.DB
-import tellmemore.{ClientRegistrationData, Client}
+import tellmemore.Client
 import org.springframework.transaction.PlatformTransactionManager
 import org.springframework.scala.transaction.support.TransactionManagement
 
@@ -22,8 +22,8 @@ case class ClientModel(clientDao: ClientDao, transactionManager: PlatformTransac
     clientDao.getAll
   }
 
-  def create(clientData: ClientRegistrationData): Option[Client] = transactional() { txStatus =>
-    clientDao.create(clientData)
+  def create(client: Client): Option[Client] = transactional() { txStatus =>
+    clientDao.create(client)
   }
 
   def deleteById(id: String) {
@@ -37,35 +37,35 @@ case class ClientModel(clientDao: ClientDao, transactionManager: PlatformTransac
 trait ClientDao {
   def getById(id: String): Option[Client]
   def getAll: Set[Client]
-  def create(clientData: ClientRegistrationData): Option[Client]
+  def create(client: Client): Option[Client]
   def deleteById(id: String)
 }
 
 case class PostgreSqlClientDao(dataSource: DataSource) extends ClientDao {
   private[this] val simple =
-    get[Pk[Long]]("clients.id") ~
+    get[String]("clients.email") ~
     get[String]("clients.name") ~
-    get[Int]("clients.created") ~
-    get[Int]("clients.last_login") map {
-          case id~name~created~lastLogin => Client(id.toString, name, new DateTime(created * 1000L))
+    get[Int]("clients.created") map {
+          case email~name~created => Client(email, name, new DateTime(created * 1000L))
     }
 
   def getById(id: String): Option[Client] = DB.withConnection(dataSource) { implicit connection =>
-    SQL("SELECT id, name, created, last_login FROM clients WHERE id={id}").on("id" -> id).as(simple.singleOpt)
+    SQL("SELECT email, name, created FROM clients WHERE id={id}").on("id" -> id).as(simple.singleOpt)
   }
 
   def getAll: Set[Client] = DB.withConnection(dataSource) { implicit connection =>
-    SQL("SELECT id, name, created, last_login FROM clients").as(simple *).toSet
+    SQL("SELECT email, name, created FROM clients").as(simple *).toSet
   }
 
-  def create(clientData: ClientRegistrationData): Option[Client] = {
+  def create(client: Client): Option[Client] = {
     val id: Option[Long] = DB.withConnection(dataSource) { implicit connection =>
-      SQL("INSERT INTO clients(name, created, last_login) VALUES ({name}, {created}, {last_login})")
-        .on("name" -> clientData.name,
-            "created" -> clientData.created.millis / 1000)
+      SQL("INSERT INTO clients(email, name, created) VALUES ({email}, {name}, {created})")
+        .on("email" -> client.id,
+            "name" -> client.name,
+            "created" -> client.created.millis / 1000)
         .executeInsert()
     }
-    id map {someId => Client(someId.toString, clientData.name, clientData.created)}
+    id map {_ => client}
   }
 
   def deleteById(id: String) {

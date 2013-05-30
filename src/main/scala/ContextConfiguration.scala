@@ -6,6 +6,7 @@ import com.googlecode.flyway.core.Flyway
 
 import tellmemore.clients.{PostgreSqlClientDao, ClientModel}
 import tellmemore.events.{EventModel, PostgreSqlEventDao}
+import tellmemore.userfacts.{PostgreSqlUserFactDao, UserFactModel}
 import tellmemore.users.{UserModel, PostgreSqlUserDao}
 
 class ContextConfiguration extends FunctionalConfiguration {
@@ -52,5 +53,13 @@ class ContextConfiguration extends FunctionalConfiguration {
 
   bean("eventModel") {
     EventModel(eventDao(), txManager())
+  }
+
+  val userFactDao = bean("userFactDao") {
+    PostgreSqlUserFactDao(dataSource())
+  }
+
+  bean("userFactModel") {
+    UserFactModel(userFactDao(), txManager())
   }
 }

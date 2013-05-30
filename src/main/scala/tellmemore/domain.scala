@@ -2,8 +2,6 @@ package tellmemore
 
 import org.scala_tools.time.Imports._
 
-case class ClientRegistrationData(name: String, created: DateTime)
-
 case class Client(id: String, name: String, created: DateTime)
 
 case class UserId(clientId: String, externalId: String)

@@ -41,35 +41,32 @@ trait UserDao {
 
 case class PostgreSqlUserDao(dataSource: DataSource) extends UserDao {
   private[this] val simple =
-    get[Long]("users.client_id") ~
     get[String]("users.external_id") ~
     get[Int]("users.created") map {
-      case clientId~externalId~created => User(UserId(clientId.toString, externalId), new DateTime(created * 1000L))
+      case externalId~created => (externalId, new DateTime(created * 1000L))
     }
 
   def getById(id: UserId): Option[User] = DB.withConnection(dataSource) { implicit connection =>
-    SQL("""SELECT id, client_id, external_id, human_readable_id, created FROM users
-           WHERE client_id={client_id} AND external_id={external_id}""")
+    SQL("""SELECT external_id, created FROM users
+           WHERE client_id=(SELECT id FROM clients WHERE email = {client_id}) AND external_id={external_id}""")
       .on("external_id" -> id.externalId, "client_id" -> id.clientId)
-      .as(simple.singleOpt)
+      .as(simple.singleOpt) map { case (_, created) => User(id, created) }
   }
 
   def getAllByClientId(clientId: String): Set[User] = DB.withConnection(dataSource) { implicit connection =>
-    SQL("SELECT id, client_id, external_id, created FROM users WHERE client_id={client_id}")
+    (SQL("SELECT external_id, created FROM users WHERE client_id=(SELECT id FROM clients WHERE email={client_id})")
       .on("client_id" -> clientId)
-      .as(simple *)
-      .toSet
+      .as(simple *) map { case (externalId, created) => User(UserId(clientId, externalId), created)})
+    .toSet
   }
 
   def bulkInsert(users: Set[User]) {
-    DB.withConnection(dataSource) { implicit connection =>
-      val insertQuery = SQL(
-        """INSERT INTO users(client_id, external_id, created)
-           VALUES({client_id}, {external_id}, {human_readable_id}, {created})""")
-      val batchInsert = (insertQuery.asBatch /: users) {
-        (sql, user) => sql.addBatchParams(user.id.clientId, user.id.externalId, user.created.millis / 1000)
-      }
-      batchInsert.execute()
+    val insertQuery = SQL(
+      """INSERT INTO users(client_id, external_id, created)
+         VALUES((SELECT id FROM clients WHERE email={client_id}), {external_id}, {created})""")
+    val batchInsert = (insertQuery.asBatch /: users) {
+      (sql, user) => sql.addBatchParams(user.id.clientId, user.id.externalId, user.created.millis / 1000)
     }
+    DB.withConnection(dataSource) { implicit connection => batchInsert.execute() }
   }
 }
