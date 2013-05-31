@@ -6,6 +6,7 @@ import com.googlecode.flyway.core.Flyway
 
 import tellmemore.clients.{PostgreSqlClientDao, ClientModel}
 import tellmemore.events.{EventModel, PostgreSqlEventDao}
+import tellmemore.infrastructure.WallClockTimeProvider
 import tellmemore.userfacts.{PostgreSqlUserFactDao, UserFactModel}
 import tellmemore.users.{UserModel, PostgreSqlUserDao}
 
@@ -16,6 +17,8 @@ class ContextConfiguration extends FunctionalConfiguration {
     dataSource.setUrl("jdbc:h2:mem:tellmemore;MODE=POSTGRESQL")
     new TransactionAwareDataSourceProxy(new LazyConnectionDataSourceProxy(dataSource))
   }
+
+  val timeProvider = bean("timeProvider") { WallClockTimeProvider() }
 
   val txManager = bean("transactionManager") {
     val txManager = new DataSourceTransactionManager()
@@ -60,6 +63,6 @@ class ContextConfiguration extends FunctionalConfiguration {
   }
 
   bean("userFactModel") {
-    UserFactModel(userFactDao(), txManager())
+    UserFactModel(userFactDao(), txManager(), timeProvider())
   }
 }

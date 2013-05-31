@@ -10,14 +10,16 @@ import anorm._
 import anorm.SqlParser._
 import org.scala_tools.time.Imports._
 
-import tellmemore.infrastructure.DB
+import tellmemore.infrastructure.{TimeProvider, DB}
 import tellmemore._
 import scala.Some
 import tellmemore.UserId
 import tellmemore.UserFact
-import anorm.~
+import anorm._
 
-case class UserFactModel(userFactDao: UserFactDao, transactionManager: PlatformTransactionManager) extends TransactionManagement {
+case class UserFactModel(userFactDao: UserFactDao,
+                         transactionManager: PlatformTransactionManager,
+                         timeProvider: TimeProvider) extends TransactionManagement {
   def getUserFactsForClient(clientId: String): Set[UserFact] = transactional() { txStatus =>
     userFactDao.getByClientId(clientId)
   }
@@ -27,10 +29,11 @@ case class UserFactModel(userFactDao: UserFactDao, transactionManager: PlatformT
       val facts = getUserFactsForClient(id.clientId)
       detectBrokenValues(values, facts) match {
         case brokenFacts if brokenFacts.size == 0 => {
+          val now = timeProvider.now
           val absentNames = getAbsentNames(values.keySet, facts)
-          val absentFacts = absentNames map {name => UserFact(id.clientId, name, values(name).factType, DateTime.now)}
+          val absentFacts = absentNames map {name => UserFact(id.clientId, name, values(name).factType, now)}
           userFactDao.bulkInsert(absentFacts)
-          userFactDao.setValuesForUser(id, values)
+          userFactDao.setValuesForUser(id, values, now)
           Right(values.size)
         }
         case brokenFacts => {
@@ -42,14 +45,18 @@ case class UserFactModel(userFactDao: UserFactDao, transactionManager: PlatformT
   private[this] def getAbsentNames(names: Set[String], facts: Set[UserFact]) = names diff (facts map {_.name})
 
   private[this] def detectBrokenValues(values: Map[String, UserFactValue], facts: Set[UserFact]): Set[UserFact] = {
-    facts filter { fact => values(fact.name).factType != fact.factType }
+    val factsMap = (facts map {fact => fact.name -> fact}).toMap
+    val badFacts = values collect {
+      case (name, v) if factsMap.get(name) map {fact => v.factType != fact.factType} getOrElse(false) => factsMap(name)
+    }
+    badFacts.toSet
   }
 }
 
 trait UserFactDao {
   def getByClientId(clientId: String): Set[UserFact]
   def bulkInsert(facts: Set[UserFact])
-  def setValuesForUser(id: UserId, values: Map[String, UserFactValue])
+  def setValuesForUser(id: UserId, values: Map[String, UserFactValue], tstamp: DateTime)
 }
 
 case class PostgreSqlUserFactDao(dataSource: DataSource) extends UserFactDao {
@@ -73,16 +80,16 @@ case class PostgreSqlUserFactDao(dataSource: DataSource) extends UserFactDao {
       .toSet
   }
 
-  def setValuesForUser(id: UserId, values: Map[String, UserFactValue]) {
-    val now = DateTime.now.millis / 1000
+  def setValuesForUser(id: UserId, values: Map[String, UserFactValue], tstamp: DateTime) {
+    val tstampMillis = tstamp.millis / 1000
     val insertQuery = SQL(
       """INSERT INTO fact_values (fact_id, user_id, numeric_value, string_value, tstamp)
          VALUES ((SELECT id FROM facts WHERE client_id = (SELECT id FROM clients WHERE email = {client_id}) AND fact_name = {fact_name}),
          (SELECT id FROM users WHERE external_id = {user_id}),
          {numeric_value}, {string_value}, {tstamp})""")
     val batchInsert = (insertQuery.asBatch /: values.toSeq) {
-      case (sql, (factName, NumericFact(value))) => sql.addBatchParams(id.clientId, factName, id.externalId, value, None, now)
-      case (sql, (factName, StringFact(value))) => sql.addBatchParams(id.clientId, factName, id.externalId, None, value, now)
+      case (sql, (factName, NumericFact(value))) => sql.addBatchParams(id.clientId, factName, id.externalId, value, None, tstampMillis)
+      case (sql, (factName, StringFact(value))) => sql.addBatchParams(id.clientId, factName, id.externalId, None, value, tstampMillis)
     }
     DB.withConnection(dataSource) { implicit connection => batchInsert.execute() }
   }
