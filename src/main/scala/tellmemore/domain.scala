@@ -18,13 +18,13 @@ import FactType._
 
 case class UserFact(clientId: String, name: String, factType: FactType, created: DateTime)
 
-sealed abstract class UserFactValue {
+sealed abstract class FactValue {
   val factType: FactType
 }
-case class StringFact(value: String) extends UserFactValue {
+case class StringFact(value: String) extends FactValue {
   val factType = String
 }
-case class NumericFact(value: Double) extends UserFactValue {
+case class NumericFact(value: Double) extends FactValue {
   val factType = Numeric
 }
 

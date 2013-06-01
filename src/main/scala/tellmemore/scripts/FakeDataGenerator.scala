@@ -1,4 +1,4 @@
-import tellmemore.{Client, User, UserId, Event, NumericFact, StringFact, UserFactValue}
+import tellmemore.{Client, User, UserId, Event, NumericFact, StringFact, FactValue}
 import tellmemore.users.UserModel
 import tellmemore.clients.ClientModel
 import tellmemore.events.EventModel
@@ -8,7 +8,7 @@ import org.scala_tools.time.Imports._
 import scala.util.Random
 import scala.collection.mutable
 import scala.util.control.Breaks._
-
+import tellmemore.UserFactValues
 
 /**
  * Singleton that will actually generate the data.
@@ -68,8 +68,9 @@ object DataGenerator {
     firstVal match {
       case u: User => this.userModel.bulkInsert(objs.asInstanceOf[Set[User]])
       case e: Event => this.eventModel.bulkInsert(objs.asInstanceOf[Set[Event]])
-      case f: ReallyConvenientFactObject =>
-        this.factModel.setForUser(f.user.id, Map[String, UserFactValue](f.fact_name -> f.fact))
+      case f: ReallyConvenientFactObject => {
+        this.factModel.setForUser(f.user.id, f.fact)
+      }
     }
 
     println("Successfully saved resources: " + objs.toList.length.toString)
@@ -240,7 +241,7 @@ class IntFactRule(fact_name: String, operator: (Int, Int) => Boolean, threshold:
    * Sequence of objects generated for this event
    */
   def generateRuleMatch(user: User): Set[ReallyConvenientFactObject] = {
-    val s = ReallyConvenientFactObject(user, NumericFact(this.getFactValue), this.fact_name )
+    val s = ReallyConvenientFactObject(user, Map[String, FactValue](this.fact_name -> NumericFact(this.getFactValue) ))
     Set[ReallyConvenientFactObject](s)
   }
 }
@@ -267,7 +268,7 @@ class StringFactRule(fact_name: String, fact_value: String) extends Rule[ReallyC
    * Sequence of objects generated for this event
    */
   def generateRuleMatch(user: User): Set[ReallyConvenientFactObject] = {
-    Set[ReallyConvenientFactObject](ReallyConvenientFactObject(user, StringFact(this.fact_value), this.fact_name ))
+    Set[ReallyConvenientFactObject](ReallyConvenientFactObject(user, Map[String, FactValue](this.fact_name -> StringFact(this.fact_value))))
   }
 }
 
@@ -276,7 +277,7 @@ class StringFactRule(fact_name: String, fact_value: String) extends Rule[ReallyC
  * @param user
  * @param fact
  */
-case class ReallyConvenientFactObject(user: User, fact: UserFactValue, fact_name: String)
+case class ReallyConvenientFactObject(user: User, fact: UserFactValues)
 
 
 object FakeDataGenerator {
