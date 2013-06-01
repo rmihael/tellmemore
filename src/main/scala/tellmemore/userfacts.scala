@@ -24,6 +24,19 @@ case class UserFactModel(userFactDao: UserFactDao,
     userFactDao.getByClientId(clientId)
   }
 
+  /**
+   * This method updates current value of user facts with provided values
+   * @note if fact with name provided was not found among existing facts then new fact will be created automatically
+   *       with type set accordingly to associated value
+   * @note if type of provided fact value is different from existing fact's type then method will fail. In that case
+   *       none changes are made, even for facts with correct names
+   * @param id id of user to update with new fact values
+   * @param values mapping between fact name and fact value
+   * @return if method succeeds then return value would be Right with number of facts updated. If there were any
+   *         incompatibilities between fact values and existing fact types then return value would be Left with
+   *         mapping between fact names and fact values that were found incompatible.
+   * @example setForUser(userId, Map("string fact" -> StringFact("string value"), "numeric fact" -> NumericFact(1.0)))
+   */
   def setForUser(id: UserId, values: Map[String, UserFactValue]): Either[Map[String, UserFactValue], Int] =
     transactional() { txStatus =>
       val facts = getUserFactsForClient(id.clientId)
