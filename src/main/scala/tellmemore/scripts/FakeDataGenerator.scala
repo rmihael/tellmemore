@@ -1,7 +1,8 @@
-import tellmemore.{Client, User, UserId, Event, UserFactValue}
+import tellmemore.{Client, User, UserId, Event, NumericFact, StringFact, UserFactValue}
 import tellmemore.users.UserModel
 import tellmemore.clients.ClientModel
 import tellmemore.events.EventModel
+import tellmemore.userfacts.UserFactModel
 import org.springframework.scala.context.function.FunctionalConfigApplicationContext
 import org.scala_tools.time.Imports._
 import scala.util.Random
@@ -27,6 +28,7 @@ object DataGenerator {
   val userModel = context.getBean("userModel").asInstanceOf[UserModel]
   val clientModel = context.getBean("clientModel").asInstanceOf[ClientModel]
   val eventModel = context.getBean("eventModel").asInstanceOf[EventModel]
+  val factModel = context.getBean("userFactModel").asInstanceOf[UserFactModel]
   val random = new Random()
 
   // create a client Instance
@@ -61,13 +63,16 @@ object DataGenerator {
    * @param objs
    *
    */
-  private def saveObjSet(objs: Set[_]) : Unit = {
+  private def saveObjSet(objs: Set[_]) {
     val firstVal = if (!objs.isEmpty) objs.head else ???
     firstVal match {
       case u: User => this.userModel.bulkInsert(objs.asInstanceOf[Set[User]])
       case e: Event => this.eventModel.bulkInsert(objs.asInstanceOf[Set[Event]])
+      case f: ReallyConvenientFactObject =>
+        this.factModel.setForUser(f.user.id, Map[String, UserFactValue](f.fact_name -> f.fact))
     }
-    println("Successfully saved resources: " + objs.toList.length.toString())
+
+    println("Successfully saved resources: " + objs.toList.length.toString)
 
   }
 
@@ -136,7 +141,8 @@ object DataGenerator {
   def generateObjectsForRule(rule: Rule[_], usersNum: Int) {
     val users = getUsersForRule(rule, usersNum)
     for (user <- users) {
-      saveObjSet(rule.generateRuleMatch(user))
+      saveObjSet(rule.generateRuleMatch(user))  // can be optimized gathering all objects to one
+                                                // and make one huge bulk
     }
     addRuleForUsers(users, rule.getRelatedObjectName)
 
@@ -211,7 +217,41 @@ class TotalEventRule(event_name: String, operator: (Int, Int) => Boolean, total:
  * @param operator
  * @param threshold
  */
-class IntFactRule(fact_name: String, operator: (Int, Int) => Boolean, threshold: Int) extends Rule[UserFactValue] {
+class IntFactRule(fact_name: String, operator: (Int, Int) => Boolean, threshold: Int) extends Rule[ReallyConvenientFactObject] {
+  /**
+   * Returns a name of object to which this user is related
+   * @return
+   */
+  def getRelatedObjectName: String = fact_name
+
+  private def getFactValue : Int = {
+    var i = 1
+    while (!this.operator(i, this.threshold)) {
+      i += 1
+    }
+    i
+  }
+  /**
+   * Generates sequence of objects that need to be put inside DB
+   * to match the rule
+   * @param user
+   * user for which this need to be generated
+   * @return
+   * Sequence of objects generated for this event
+   */
+  def generateRuleMatch(user: User): Set[ReallyConvenientFactObject] = {
+    val s = ReallyConvenientFactObject(user, NumericFact(this.getFactValue), this.fact_name )
+    Set[ReallyConvenientFactObject](s)
+  }
+}
+
+
+/**
+ * Represents string fact value for user.
+ * It will just translate facts with different values for user. If you want to create not_contains rule,
+ * just create fact with name that will not_contain your name
+ */
+class StringFactRule(fact_name: String, fact_value: String) extends Rule[ReallyConvenientFactObject] {
   /**
    * Returns a name of object to which this user is related
    * @return
@@ -226,8 +266,17 @@ class IntFactRule(fact_name: String, operator: (Int, Int) => Boolean, threshold:
    * @return
    * Sequence of objects generated for this event
    */
-  def generateRuleMatch(user: User): Set[UserFactValue] = ???  // TODO implement Facts
+  def generateRuleMatch(user: User): Set[ReallyConvenientFactObject] = {
+    Set[ReallyConvenientFactObject](ReallyConvenientFactObject(user, StringFact(this.fact_value), this.fact_name ))
+  }
 }
+
+/**
+ * Never ask why this born. Just use it.
+ * @param user
+ * @param fact
+ */
+case class ReallyConvenientFactObject(user: User, fact: UserFactValue, fact_name: String)
 
 
 object FakeDataGenerator {
@@ -238,6 +287,8 @@ object FakeDataGenerator {
     DataGenerator.generateObjectsForRule(rule1, 5)
     DataGenerator.generateObjectsForRule(rule2, 5)
     DataGenerator.generateObjectsForRule(rule3, 10)
+    DataGenerator.generateObjectsForRule(new IntFactRule("Fact user", _>=_, 25), 25)
+    DataGenerator.generateObjectsForRule(new StringFactRule("String fact", "cool value"), 50)
     val savedUsers = DataGenerator.userModel.getAllByClientId("bestclient@example.com")
     println("Successfully saved " + savedUsers.toList.length.toString + " users")
   }
