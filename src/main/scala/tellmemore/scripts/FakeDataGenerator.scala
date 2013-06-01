@@ -1,4 +1,4 @@
-import tellmemore.{Client, User, UserId, Event, UserFactValue}
+import tellmemore.{Client, User, UserId, Event, FactValue}
 import tellmemore.users.UserModel
 import tellmemore.clients.ClientModel
 import tellmemore.events.EventModel
@@ -211,7 +211,7 @@ class TotalEventRule(event_name: String, operator: (Int, Int) => Boolean, total:
  * @param operator
  * @param threshold
  */
-class IntFactRule(fact_name: String, operator: (Int, Int) => Boolean, threshold: Int) extends Rule[UserFactValue] {
+class IntFactRule(fact_name: String, operator: (Int, Int) => Boolean, threshold: Int) extends Rule[FactValue] {
   /**
    * Returns a name of object to which this user is related
    * @return
@@ -226,7 +226,7 @@ class IntFactRule(fact_name: String, operator: (Int, Int) => Boolean, threshold:
    * @return
    * Sequence of objects generated for this event
    */
-  def generateRuleMatch(user: User): Set[UserFactValue] = ???  // TODO implement Facts
+  def generateRuleMatch(user: User): Set[FactValue] = ???  // TODO implement Facts
 }
 
 

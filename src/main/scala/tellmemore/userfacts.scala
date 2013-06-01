@@ -15,7 +15,6 @@ import tellmemore._
 import scala.Some
 import tellmemore.UserId
 import tellmemore.UserFact
-import anorm._
 
 case class UserFactModel(userFactDao: UserFactDao,
                          transactionManager: PlatformTransactionManager,
@@ -37,7 +36,7 @@ case class UserFactModel(userFactDao: UserFactDao,
    *         mapping between fact names and fact values that were found incompatible.
    * @example setForUser(userId, Map("string fact" -> StringFact("string value"), "numeric fact" -> NumericFact(1.0)))
    */
-  def setForUser(id: UserId, values: Map[String, UserFactValue]): Either[Map[String, UserFactValue], Int] =
+  def setForUser(id: UserId, values: UserFactValues): Either[UserFactValues, Int] =
     transactional() { txStatus =>
       val facts = getUserFactsForClient(id.clientId)
       detectBrokenValues(values, facts) match {
@@ -57,7 +56,7 @@ case class UserFactModel(userFactDao: UserFactDao,
 
   private[this] def getAbsentNames(names: Set[String], facts: Set[UserFact]) = names diff (facts map {_.name})
 
-  private[this] def detectBrokenValues(values: Map[String, UserFactValue], facts: Set[UserFact]): Set[UserFact] = {
+  private[this] def detectBrokenValues(values: UserFactValues, facts: Set[UserFact]): Set[UserFact] = {
     val factsMap = (facts map {fact => fact.name -> fact}).toMap
     val badFacts = values collect {
       case (name, v) if factsMap.get(name) map {fact => v.factType != fact.factType} getOrElse(false) => factsMap(name)
@@ -69,7 +68,7 @@ case class UserFactModel(userFactDao: UserFactDao,
 trait UserFactDao {
   def getByClientId(clientId: String): Set[UserFact]
   def bulkInsert(facts: Set[UserFact])
-  def setValuesForUser(id: UserId, values: Map[String, UserFactValue], tstamp: DateTime)
+  def setValuesForUser(id: UserId, values: UserFactValues, tstamp: DateTime)
 }
 
 case class PostgreSqlUserFactDao(dataSource: DataSource) extends UserFactDao {
@@ -93,7 +92,7 @@ case class PostgreSqlUserFactDao(dataSource: DataSource) extends UserFactDao {
       .toSet
   }
 
-  def setValuesForUser(id: UserId, values: Map[String, UserFactValue], tstamp: DateTime) {
+  def setValuesForUser(id: UserId, values: UserFactValues, tstamp: DateTime) {
     val tstampMillis = tstamp.millis / 1000
     val insertQuery = SQL(
       """INSERT INTO fact_values (fact_id, user_id, numeric_value, string_value, tstamp)
