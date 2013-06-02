@@ -51,4 +51,5 @@ object ApplicationBuild extends Build {
   lazy val main = Project("tellmemore", file("."))
     .configs(IntegrationTest)
     .settings(Defaults.itSettings : _*)
+    .settings(parallelExecution in IntegrationTest := false)
 }
