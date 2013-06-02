@@ -12,7 +12,9 @@ require.config({
         underscore: 'libs/underscore-1.4.4',
         backbone: 'libs/backbone-1.0.0',
         bootstrap: 'libs/bootstrap-2.3.2',
-        base_view: 'views/base_view'
+        base_view: 'views/base_view',
+        log: 'libs/loglevel-0.2.0'
+
     },
     // Trick for making apps js complaint. See more: http://requirejs.org/docs/api.html#config-shim
     shim: {
@@ -34,8 +36,9 @@ require([
     'backbone',
     'jquery',
     'underscore',
-    'views/app_view'
-], function (Backbone, $, _, AppView) {
+    'views/app_view',
+    'log'
+], function (Backbone, $, _, AppView, log) {
     var Router = Backbone.Router.extend({
         initialize: function() {
             this.app_view = new AppView();
@@ -54,6 +57,8 @@ require([
         }
     });
 
+    log.setLevel("DEBUG");
+    log.debug("Starting tellmemore client application");
     var router = new Router(); // always create router before history start
     Backbone.history.start();
 });
