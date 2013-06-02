@@ -2,7 +2,6 @@ package tellmemore.clients
 
 import org.specs2.mock.Mockito
 import org.specs2.mutable._
-import org.specs2.specification.Scope
 import org.springframework.transaction.PlatformTransactionManager
 import org.scala_tools.time.Imports._
 

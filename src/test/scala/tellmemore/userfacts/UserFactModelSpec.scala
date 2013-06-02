@@ -1,11 +1,12 @@
 package tellmemore.userfacts
 
-import org.specs2.mock.Mockito
 import org.specs2.mutable._
 import org.springframework.transaction.PlatformTransactionManager
 import org.scala_tools.time.Imports._
+
 import tellmemore.{UserFact, UserId, FactType, NumericFact, StringFact}
 import tellmemore.stubs.infrastructure.FixedTimeProvider
+import org.specs2.mock.Mockito
 
 class UserFactModelSpec extends Specification with Mockito {
   isolated

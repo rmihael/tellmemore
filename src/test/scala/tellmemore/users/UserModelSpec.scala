@@ -4,6 +4,7 @@ import org.specs2.mock.Mockito
 import org.specs2.mutable._
 import org.springframework.transaction.PlatformTransactionManager
 import org.scala_tools.time.Imports._
+
 import tellmemore.{UserId, User}
 
 class UserModelSpec extends Specification with Mockito {
