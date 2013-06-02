@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:tx="http://www.springframework.org/schema/tx"
+       xmlns:context="http://www.springframework.org/schema/context"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd http://www.springframework.org/schema/tx http://www.springframework.org/schema/tx/spring-tx.xsd http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context.xsd">
+
+    <bean id="transactionManager" class="org.springframework.jdbc.datasource.DataSourceTransactionManager">
+        <property name="dataSource" ref="dataSource"/>
+    </bean>
+    <tx:annotation-driven />
+
+    <bean id="timeProvider" class="tellmemore.infrastructure.time.WallClockTimeProvider"/>
+
+    <bean id="flyway" class="com.googlecode.flyway.core.Flyway" init-method="migrate">
+        <property name="dataSource" ref="dataSource"/>
+    </bean>
+
+    <bean id="clientDao" class="tellmemore.clients.PostgreSqlClientDao">
+        <constructor-arg ref="dataSource"/>
+    </bean>
+    <bean id="clientModel" class="tellmemore.clients.ClientModel">
+        <constructor-arg ref="clientDao"/>
+        <constructor-arg ref="transactionManager"/>
+    </bean>
+    <bean id="userDao" class="tellmemore.users.PostgreSqlUserDao">
+        <constructor-arg ref="dataSource"/>
+    </bean>
+    <bean id="userModel" class="tellmemore.users.UserModel">
+        <constructor-arg ref="userDao"/>
+        <constructor-arg ref="transactionManager"/>
+    </bean>
+    <bean id="eventDao" class="tellmemore.events.PostgreSqlEventDao">
+        <constructor-arg ref="dataSource"/>
+    </bean>
+    <bean id="eventModel" class="tellmemore.events.EventModel">
+        <constructor-arg ref="eventDao"/>
+        <constructor-arg ref="transactionManager"/>
+    </bean>
+    <bean id="userFactDao" class="tellmemore.userfacts.PostgreSqlUserFactDao">
+        <constructor-arg ref="dataSource"/>
+    </bean>
+    <bean id="userFactModel" class="tellmemore.userfacts.UserFactModel">
+        <constructor-arg ref="userFactDao"/>
+        <constructor-arg ref="transactionManager"/>
+        <constructor-arg ref="timeProvider"/>
+    </bean>
+
+    <context:component-scan base-package="tellmemore"/>
+</beans>

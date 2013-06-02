@@ -10,8 +10,9 @@ object BuildSettings {
     scalaVersion := "2.10.1",
     scalacOptions += "-deprecation",
     scalacOptions += "-feature",
-    libraryDependencies ++= Seq(spring, springJdbc, dbcp, h2, flyway, jodaTime, anorm, specs2, mockito),
-    resolvers := Seq(springMilestoneRepo, typesafeRepo, localRepo)
+    libraryDependencies ++= Seq(spring, springJdbc, dbcp, h2, flyway, jodaTime, anorm, specs2, specs2Spring,
+                                mockito, atomikos),
+    resolvers := Seq(springMilestoneRepo, typesafeRepo, localRepo, sonatypeSnapshotsRepo)
   )
 
   val projectSettings = Defaults.defaultSettings ++ globalSettings
@@ -20,6 +21,7 @@ object BuildSettings {
 object Resolvers {
   val typesafeRepo = "Typesafe Repository" at "http://repo.typesafe.com/typesafe/releases/"
   val springMilestoneRepo = "repo.springsource.org-milestone" at "https://repo.springsource.org/libs-milestone"
+  val sonatypeSnapshotsRepo = "Sonatype Snapshots" at "https://oss.sonatype.org/content/repositories/snapshots/"
   val localRepo = Resolver.file("localRepo", file("localRepo"))(Resolver.ivyStylePatterns)
 }
 
@@ -31,8 +33,10 @@ object Dependencies {
   val flyway = "com.googlecode.flyway" % "flyway-core" % "2.1.1"
   val jodaTime = "org.scalaj" %% "scalaj-time" % "0.6"
   val anorm = "play" %% "anorm" % "2.1.1"
-  val specs2 = "org.specs2" %% "specs2" % "1.13" % "test"
-  val mockito = "org.mockito" % "mockito-all" % "1.9.5" % "test"
+  val specs2Spring = "org.specs2" %% "spring" % "1.0.1-SNAPSHOT" % "it,test"
+  val specs2 = "org.specs2" %% "specs2" % "1.13" % "it,test"
+  val mockito = "org.mockito" % "mockito-all" % "1.9.5" % "it,test"
+  val atomikos = "com.atomikos" % "transactions-jdbc" % "3.8.0" % "it,test"
 }
 
 object ApplicationBuild extends Build {
@@ -45,4 +49,6 @@ object ApplicationBuild extends Build {
   val appVersion      = "0.1-SNAPSHOT"
 
   lazy val main = Project("tellmemore", file("."))
+    .configs(IntegrationTest)
+    .settings(Defaults.itSettings : _*)
 }

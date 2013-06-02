@@ -1,4 +1,10 @@
-import tellmemore.{Client, User, UserId, Event, FactValue}
+import tellmemore._
+import tellmemore.Client
+import tellmemore.clients.ClientModel
+import tellmemore.Event
+import tellmemore.events.EventModel
+import tellmemore.User
+import tellmemore.UserId
 import tellmemore.users.UserModel
 import tellmemore.clients.ClientModel
 import tellmemore.events.EventModel
@@ -7,6 +13,7 @@ import org.scala_tools.time.Imports._
 import scala.util.Random
 import scala.collection.mutable
 import scala.util.control.Breaks._
+import tellmemore.users.UserModel
 
 
 /**
@@ -23,7 +30,7 @@ import scala.util.control.Breaks._
 object DataGenerator {
   private var usersGenerated: Int = 0
   private val clientId = "bestclient@example.com"
-  private val context = FunctionalConfigApplicationContext[ContextConfiguration]
+  private val context = FunctionalConfigApplicationContext[ApplicationContext]
   val userModel = context.getBean("userModel").asInstanceOf[UserModel]
   val clientModel = context.getBean("clientModel").asInstanceOf[ClientModel]
   val eventModel = context.getBean("eventModel").asInstanceOf[EventModel]
