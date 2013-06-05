@@ -11,7 +11,7 @@ object BuildSettings {
     scalacOptions += "-deprecation",
     scalacOptions += "-feature",
     libraryDependencies ++= Seq(spring, springJdbc, dbcp, h2, flyway, jodaTime, anorm, specs2, specs2Spring,
-                                mockito, atomikos),
+                                mockito, atomikos, playFramework),
     resolvers := Seq(springMilestoneRepo, typesafeRepo, localRepo, sonatypeSnapshotsRepo)
   )
 
@@ -26,6 +26,7 @@ object Resolvers {
 }
 
 object Dependencies {
+  val playFramework = "play" %% "play" % play.core.PlayVersion.current
   val dbcp = "commons-dbcp" % "commons-dbcp" % "1.4"
   val spring = "org.springframework.scala" % "spring-scala" % "1.0.0.M2"
   val h2 = "com.h2database" % "h2" % "1.3.171"
