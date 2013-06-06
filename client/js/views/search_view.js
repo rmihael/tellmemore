@@ -59,7 +59,7 @@ define([
                     break; // important because array changing in cycle
                 }
             }
-            component.el.remove();
+            component.remove();
             if (this.search_components.length === 0) {
                 this._addSearchComponent(); // add one component if user removes the last one
             }

@@ -11,6 +11,7 @@ import scala.collection.mutable
 import scala.util.control.Breaks._
 import tellmemore.userfacts.UserFactValues
 
+
 /**
  * Singleton that will actually generate the data.
  * All the data will be generated for Query object.

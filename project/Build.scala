@@ -11,7 +11,7 @@ object BuildSettings {
     scalacOptions += "-deprecation",
     scalacOptions += "-feature",
     libraryDependencies ++= Seq(spring, springJdbc, dbcp, h2, flyway, jodaTime, anorm, specs2, specs2Spring,
-                                mockito, atomikos),
+                                mockito, atomikos, playFramework),
     resolvers := Seq(springMilestoneRepo, typesafeRepo, localRepo, sonatypeSnapshotsRepo)
   )
 
@@ -37,6 +37,7 @@ object Dependencies {
   val specs2 = "org.specs2" %% "specs2" % "1.13" % "it,test"
   val mockito = "org.mockito" % "mockito-all" % "1.9.5" % "it,test"
   val atomikos = "com.atomikos" % "transactions-jdbc" % "3.8.0" % "it,test"
+  val playFramework = "play" %% "play" % "2.1.1"
 }
 
 object ApplicationBuild extends Build {
@@ -52,4 +53,6 @@ object ApplicationBuild extends Build {
     .configs(IntegrationTest)
     .settings(Defaults.itSettings : _*)
     .settings(parallelExecution in IntegrationTest := false)
+
+  lazy val tellmemore_web = play.Project("tellmemore-web", appVersion, Seq(), path=file("tellmemore-web")).configs(IntegrationTest).settings(Defaults.itSettings : _*).settings(parallelExecution in IntegrationTest := false) dependsOn(main)
 }
