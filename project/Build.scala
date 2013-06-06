@@ -26,6 +26,7 @@ object Resolvers {
 }
 
 object Dependencies {
+  val playFramework = "play" %% "play" % play.core.PlayVersion.current
   val dbcp = "commons-dbcp" % "commons-dbcp" % "1.4"
   val spring = "org.springframework.scala" % "spring-scala" % "1.0.0.M2"
   val h2 = "com.h2database" % "h2" % "1.3.171"
