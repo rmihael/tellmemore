@@ -7,7 +7,7 @@ import tellmemore.clients.ClientModel
 import tellmemore.users.UserModel
 import tellmemore.{UserId, User, Client, IntegrationTest}
 
-class UserFactModelSpec extends IntegrationTest {
+class UserFactModelItSpec extends IntegrationTest {
   @Autowired var userModel: UserModel = _
   @Autowired var clientModel: ClientModel = _
 

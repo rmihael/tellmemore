@@ -5,7 +5,7 @@ import org.scala_tools.time.Imports._
 
 import tellmemore.{Client, IntegrationTest}
 
-class ClientModelSpec extends IntegrationTest {
+class ClientModelItSpec extends IntegrationTest {
   @Autowired var clientModel: ClientModel = _
 
   val clients = Set(

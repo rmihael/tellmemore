@@ -7,11 +7,11 @@ object BuildSettings {
   import Resolvers._
 
   val globalSettings = Seq(
-    scalaVersion := "2.10.1",
+    scalaVersion := "2.10.2",
     scalacOptions += "-deprecation",
     scalacOptions += "-feature",
     libraryDependencies ++= Seq(spring, springJdbc, dbcp, h2, flyway, jodaTime, anorm, specs2, specs2Spring,
-                                mockito, atomikos, playFramework),
+                                mockito, atomikos, playFramework, kiama, scalaz),
     resolvers := Seq(springMilestoneRepo, typesafeRepo, localRepo, sonatypeSnapshotsRepo)
   )
 
@@ -34,11 +34,12 @@ object Dependencies {
   val flyway = "com.googlecode.flyway" % "flyway-core" % "2.1.1"
   val jodaTime = "org.scalaj" %% "scalaj-time" % "0.6"
   val anorm = "play" %% "anorm" % "2.1.1"
+  val kiama = "com.googlecode.kiama" %% "kiama" % "1.5.0"
+  val scalaz = "org.scalaz" %% "scalaz-core" % "7.0.0"
   val specs2Spring = "org.specs2" %% "spring" % "1.0.1-SNAPSHOT" % "it,test"
   val specs2 = "org.specs2" %% "specs2" % "1.13" % "it,test"
   val mockito = "org.mockito" % "mockito-all" % "1.9.5" % "it,test"
   val atomikos = "com.atomikos" % "transactions-jdbc" % "3.8.0" % "it,test"
-  val playFramework = "play" %% "play" % "2.1.1"
 }
 
 object ApplicationBuild extends Build {

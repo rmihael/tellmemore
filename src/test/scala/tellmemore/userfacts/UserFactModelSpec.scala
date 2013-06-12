@@ -25,7 +25,7 @@ class UserFactModelSpec extends Specification with Mockito {
   "UserFactModel" should {
     "delegate getUserFactsForClient to DAO" in {
       userFactDao.getByClientId("client@domain.com") returns facts
-      userFactModel.getUserFactsForClient("client@domain.com") must equalTo(facts)
+      userFactModel.getUserFactsForClient("client@domain.com") must equalTo(facts map {fact => fact.name -> fact} toMap)
     }
 
     "create missing facts when doing setForUser" in {

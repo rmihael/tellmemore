@@ -1,6 +1,8 @@
 import org.springframework.context.support.ClassPathXmlApplicationContext
 import tellmemore._
 import tellmemore.clients._
+import tellmemore.queries._
+import tellmemore.queries.facts.FactsQueryModel
 import tellmemore.users._
 import tellmemore.events._
 import tellmemore.userfacts._
@@ -16,6 +18,7 @@ object Playground {
     val userModel = context.getBean("userModel").asInstanceOf[UserModel]
     val eventModel = context.getBean("eventModel").asInstanceOf[EventModel]
     val userFactModel = context.getBean("userFactModel").asInstanceOf[UserFactModel]
+    val factsQueryModel = context.getBean("factsQueryModel").asInstanceOf[FactsQueryModel]
 
     userModel.bulkInsert(Set(User(UserId("someid", "userid"), DateTime.now)))
 

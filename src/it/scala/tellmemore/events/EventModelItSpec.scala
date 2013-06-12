@@ -2,7 +2,7 @@ package tellmemore.events
 
 import tellmemore.IntegrationTest
 
-class EventModelSpec extends IntegrationTest {
+class EventModelItSpec extends IntegrationTest {
   "EventModel" should {
     "get all user events by id and specified timestamp" in {
       skipped

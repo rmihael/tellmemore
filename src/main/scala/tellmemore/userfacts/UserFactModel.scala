@@ -11,8 +11,15 @@ import tellmemore.infrastructure.time.TimeProvider
 case class UserFactModel(userFactDao: UserFactDao,
                          transactionManager: PlatformTransactionManager,
                          timeProvider: TimeProvider) extends TransactionManagement {
-  def getUserFactsForClient(clientId: String): Set[UserFact] = transactional() { txStatus =>
-    userFactDao.getByClientId(clientId)
+  /**
+   * This method returns registry of all client facts for users
+   * @param clientId client it to whom fetch facts
+   * @return mapping between fact name and UserFact object
+   */
+  def getUserFactsForClient(clientId: String): Map[String, UserFact] = transactional() { txStatus =>
+    (userFactDao.getByClientId(clientId) map {
+      fact => fact.name -> fact
+    }).toMap
   }
 
   /**
@@ -34,7 +41,7 @@ case class UserFactModel(userFactDao: UserFactDao,
       detectBrokenValues(values, facts) match {
         case brokenFacts if brokenFacts.size == 0 => {
           val now = timeProvider.now
-          val absentNames = getAbsentNames(values.keySet, facts)
+          val absentNames = getAbsentNames(values.keySet, facts.values)
           val absentFacts = absentNames map {name => UserFact(id.clientId, name, values(name).factType, now)}
           userFactDao.bulkInsert(absentFacts)
           userFactDao.setValuesForUser(id, values, now)
@@ -46,12 +53,11 @@ case class UserFactModel(userFactDao: UserFactDao,
       }
     }
 
-  private[this] def getAbsentNames(names: Set[String], facts: Set[UserFact]) = names diff (facts map {_.name})
+  private[this] def getAbsentNames(names: Set[String], facts: Iterable[UserFact]) = names diff (facts map {_.name} toSet)
 
-  private[this] def detectBrokenValues(values: UserFactValues, facts: Set[UserFact]): Set[UserFact] = {
-    val factsMap = (facts map {fact => fact.name -> fact}).toMap
+  private[this] def detectBrokenValues(values: UserFactValues, facts: Map[String, UserFact]): Set[UserFact] = {
     val badFacts = values collect {
-      case (name, v) if factsMap.get(name) map {fact => v.factType != fact.factType} getOrElse(false) => factsMap(name)
+      case (name, v) if facts.get(name) exists {fact => v.factType != fact.factType} => facts(name)
     }
     badFacts.toSet
   }

@@ -19,4 +19,6 @@ project/plugins/project/
 .lock
 .vpprefdata/
 *.vpp~*
+*.vpp.working
+teamworkUser.xml
 tmp/
