@@ -7,6 +7,9 @@ import org.springframework.transaction.PlatformTransactionManager
 
 import tellmemore.{UserId, UserFact}
 import tellmemore.infrastructure.time.TimeProvider
+import tellmemore.queries.facts.FactsQuery
+import scala.util.Try
+import scala.util.control.NonFatal
 
 case class UserFactModel(userFactDao: UserFactDao,
                          transactionManager: PlatformTransactionManager,
@@ -52,6 +55,13 @@ case class UserFactModel(userFactDao: UserFactDao,
         }
       }
     }
+
+  /**
+   * This method processes user facts query and returns set of user domain ids
+   * @param query query object
+   * @return set of user ids
+   */
+  def find(query: FactsQuery): Set[String] = userFactDao.find(query)
 
   private[this] def getAbsentNames(names: Set[String], facts: Iterable[UserFact]) = names diff (facts map {_.name} toSet)
 

@@ -10,7 +10,7 @@ object BuildSettings {
     scalaVersion := "2.10.2",
     scalacOptions += "-deprecation",
     scalacOptions += "-feature",
-    libraryDependencies ++= Seq(spring, springJdbc, dbcp, h2, flyway, jodaTime, anorm, specs2, specs2Spring,
+    libraryDependencies ++= Seq(spring, springJdbc, dbcp, h2, flyway, jodaTime, anorm, specs2Spring,
                                 mockito, atomikos, playFramework, kiama, scalaz),
     resolvers := Seq(springMilestoneRepo, typesafeRepo, localRepo, sonatypeSnapshotsRepo)
   )
@@ -37,7 +37,7 @@ object Dependencies {
   val kiama = "com.googlecode.kiama" %% "kiama" % "1.5.0"
   val scalaz = "org.scalaz" %% "scalaz-core" % "7.0.0"
   val specs2Spring = "org.specs2" %% "spring" % "1.0.1-SNAPSHOT" % "it,test"
-  val specs2 = "org.specs2" %% "specs2" % "1.13" % "it,test"
+//  val specs2 = "org.specs2" %% "specs2" % "1.14" % "it,test"
   val mockito = "org.mockito" % "mockito-all" % "1.9.5" % "it,test"
   val atomikos = "com.atomikos" % "transactions-jdbc" % "3.8.0" % "it,test"
 }

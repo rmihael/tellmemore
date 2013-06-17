@@ -5,15 +5,11 @@ import org.specs2.mutable.Specification
 import tellmemore.{StringFact, NumericFact}
 
 class FactsQueryAstSpec extends Specification {
-  val ast = FactsQueryAstT.AndNode(Seq(
-              FactsQueryAstT.OrNode(Seq(
-                FactsQueryAstT.Condition("fact", NumericFact(2.5)),
-                FactsQueryAstT.Condition("fact2", StringFact("string"))
-              )),
-              FactsQueryAstT.AndNode(Seq(
-                FactsQueryAstT.Condition("fact3", NumericFact(5.5)),
-                FactsQueryAstT.Condition("fact4", StringFact("string2"))
-              ))
+  import FactsQueryAst._
+
+  val ast = AndNode(Seq(
+              OrNode(Seq(Condition("fact", NumericFact(2.5)), Condition("fact2", StringFact("string")))),
+              AndNode(Seq(Condition("fact3", NumericFact(5.5)), Condition("fact4", StringFact("string2"))))
             ))
 
   "FactsQueryAst" should {

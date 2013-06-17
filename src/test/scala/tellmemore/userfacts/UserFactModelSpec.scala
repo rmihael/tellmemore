@@ -54,5 +54,13 @@ class UserFactModelSpec extends Specification with Mockito {
       userFactModel.setForUser(userId, values) must beRight(values.size)
     }
 
+    "refuse to create any duplicate facts for client" in {
+      skipped
+    }
+
+    "do not create new facts on bulk insert if any of facts is invalid" in {
+      skipped
+    }
+
   }
 }

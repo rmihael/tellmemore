@@ -10,6 +10,7 @@ import org.scala_tools.time.Imports._
 
 import tellmemore.{UserId, UserFact, NumericFact, StringFact, FactType}
 import tellmemore.infrastructure.DB
+import tellmemore.queries.facts.{FactsQuery, FactsQueryAst}
 
 case class PostgreSqlUserFactDao(dataSource: DataSource) extends UserFactDao {
   private[this] val simple =
@@ -21,6 +22,14 @@ case class PostgreSqlUserFactDao(dataSource: DataSource) extends UserFactDao {
         Some(UserFact(clientId.toString, factName, FactType(factType), new DateTime(created)))
       case _ => None // TODO: Add log about data inconsistency
     }
+
+  private[this] val factName2Id =
+    get[Long]("facts.id") ~
+    get[String]("facts.fact_name") map {
+      case factId~factName => factName -> factId
+    }
+
+  private[this] val userIds = get[String]("external_id")
 
   def getByClientId(clientId: String): Set[UserFact] = DB.withConnection(dataSource) { implicit connection =>
     SQL(
@@ -53,5 +62,31 @@ case class PostgreSqlUserFactDao(dataSource: DataSource) extends UserFactDao {
       (sql, fact) => sql.addBatchParams(fact.clientId, fact.factType.id, fact.name, fact.created.millis)
     }
     DB.withConnection(dataSource) { implicit connection => batchInsert.execute() }
+  }
+
+  def find(query: FactsQuery): Set[String] = {
+    // TODO: Achtung! Potential for SQL injection
+    val sqlAst = queryTranslator(query.ast, name2IdMap(query.clientId))
+    val users = DB.withConnection(dataSource) { implicit connection => SQL(sqlAst.sql).as(userIds *) }
+    users.toSet
+  }
+
+  private[this] def name2IdMap(clientId: String): Map[String, Long] = DB.withConnection(dataSource) { implicit connection =>
+    SQL("""SELECT id, fact_name FROM facts
+           WHERE client_id=(SELECT id FROM clients WHERE email={client_id})""")
+      .on("client_id" -> clientId)
+      .as(factName2Id *)
+      .toMap
+  }
+}
+
+private[userfacts] object queryTranslator {
+  def apply(ast: FactsQueryAst, facts: Map[String, Long]): SqlAst = {
+    import tellmemore.queries.facts.FactsQueryAst.{AndNode, OrNode, Condition}
+    ast match {
+      case Condition(fact, value) => BasicSql(SqlCondition(facts(fact), value))
+      case OrNode(subqueries) => UnionSql(subqueries map {queryTranslator(_, facts)})
+      case AndNode(subqueries) => IntersectionSql(subqueries map {queryTranslator(_, facts)})
+    }
   }
 }

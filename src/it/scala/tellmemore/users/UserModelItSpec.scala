@@ -45,6 +45,7 @@ class UserModelItSpec extends IntegrationTest {
       clientModel.create(client)
       userModel.insert(user)
       userModel.insert(User(user.id, DateTime.now))
+      skipped
       userModel.getAllByClientId(client.id) must haveLength(1)
     }
 
