@@ -54,6 +54,7 @@
 
     <bean id="factsQueryModel" class="tellmemore.queries.facts.FactsQueryModel">
         <constructor-arg ref="userFactModel"/>
+        <constructor-arg ref="timeProvider"/>
     </bean>
 
     <context:component-scan base-package="tellmemore"/>

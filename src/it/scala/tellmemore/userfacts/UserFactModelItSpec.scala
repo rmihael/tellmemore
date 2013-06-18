@@ -10,6 +10,7 @@ import tellmemore.queries.facts.FactsQueryAst.{AndNode, OrNode, Condition}
 import tellmemore.{StringFact, NumericFact}
 import tellmemore.{UserId, User, Client, IntegrationTest}
 import tellmemore.queries.facts.FactsQuery
+import tellmemore.queries.Moment
 
 class UserFactModelItSpec extends IntegrationTest {
   @Autowired var userModel: UserModel = _
@@ -17,8 +18,9 @@ class UserFactModelItSpec extends IntegrationTest {
   @Autowired var userFactModel: UserFactModel = _
 
   trait clientsAndUsers extends Scope {
-    val client = Client("email1@domain.com", "Test user 1", DateTime.now)
-    val user = User(UserId(client.id, "newuser"), DateTime.now)
+    val now = DateTime.now
+    val client = Client("email1@domain.com", "Test user 1", now)
+    val user = User(UserId(client.id, "newuser"), now)
     clientModel.create(client)
     userModel.insert(user)
   }
@@ -45,27 +47,31 @@ class UserFactModelItSpec extends IntegrationTest {
     }
 
     "find users by single condition query" in new clientsAndUsers {
-      val ast = Condition("fact", NumericFact(2.5))
+      val ast = Condition("fact", NumericFact(2.5), Moment.Now(now))
       userFactModel.setForUser(user.id, Map("fact" -> NumericFact(2.5)))
       userFactModel.find(FactsQuery(client.id, ast)) must equalTo(Set(user.id.externalId))
     }
 
     "find users by OR query" in new clientsAndUsers {
-      val ast = OrNode(Seq(Condition("fact", NumericFact(2.5)), Condition("fact2", StringFact("string"))))
+      val ast = OrNode(Seq(Condition("fact", NumericFact(2.5), Moment.Now(now)),
+                           Condition("fact2", StringFact("string"), Moment.Now(now))))
       userFactModel.setForUser(user.id, Map("fact" -> NumericFact(2.5), "fact2" -> StringFact("notstring")))
       userFactModel.find(FactsQuery(client.id, ast)) must equalTo(Set(user.id.externalId))
     }
 
     "find users by AND query" in new clientsAndUsers {
-      val ast = AndNode(Seq(Condition("fact", NumericFact(2.5)), Condition("fact2", StringFact("string"))))
+      val ast = AndNode(Seq(Condition("fact", NumericFact(2.5), Moment.Now(now)),
+                            Condition("fact2", StringFact("string"), Moment.Now(now))))
       userFactModel.setForUser(user.id, Map("fact" -> NumericFact(2.5), "fact2" -> StringFact("string")))
       userFactModel.find(FactsQuery(client.id, ast)) must equalTo(Set(user.id.externalId))
     }
 
     "find users by complex AND-OR query" in new clientsAndUsers {
       val ast = AndNode(Seq(
-        OrNode(Seq(Condition("fact", NumericFact(2.5)), Condition("fact2", StringFact("string")))),
-        AndNode(Seq(Condition("fact3", NumericFact(5.5)), Condition("fact4", StringFact("string2"))))
+        OrNode(Seq(Condition("fact", NumericFact(2.5), Moment.Now(now)),
+                   Condition("fact2", StringFact("string"), Moment.Now(now)))),
+        AndNode(Seq(Condition("fact3", NumericFact(5.5), Moment.Now(now)),
+                    Condition("fact4", StringFact("string2"), Moment.Now(now))))
       ))
       val query = FactsQuery(client.id, ast)
       userFactModel.setForUser(user.id, Map("fact" -> NumericFact(2.5), "fact2" -> StringFact("notstring"),

@@ -4,6 +4,8 @@ import org.specs2.mutable.Specification
 
 import tellmemore.queries.facts.FactsQueryAst.{AndNode, OrNode, Condition}
 import tellmemore.{StringFact, NumericFact}
+import tellmemore.queries.Moment
+import org.joda.time.DateTime
 
 class Ast2SqlTranslatorSpec extends Specification {
   "AST to SQL translator" should {
@@ -16,33 +18,36 @@ class Ast2SqlTranslatorSpec extends Specification {
 //    }
 
     val facts = Map("numeric_fact" -> 1L, "string_fact" -> 2L)
+    val now = DateTime.now
 
     "translate single numeric condition AST to simple SELECT" in {
-      val ast = Condition("numeric_fact", NumericFact(10.0))
-      val result = BasicSql(SqlCondition(1, NumericFact(10.0)))
+      val ast = Condition("numeric_fact", NumericFact(10.0), Moment.Now(now))
+      val result = BasicSql(SqlCondition(1, NumericFact(10.0), now))
       queryTranslator(ast, facts) must equalTo(result)
     }
 
     "translate single numeric condition AST to simple SELECT" in {
-      val ast = Condition("string_fact", StringFact("somevalue"))
-      val result = BasicSql(SqlCondition(2, StringFact("somevalue")))
+      val ast = Condition("string_fact", StringFact("somevalue"), Moment.Now(now))
+      val result = BasicSql(SqlCondition(2, StringFact("somevalue"), now))
       queryTranslator(ast, facts) must equalTo(result)
     }
 
     "translate 'or' node to SQL UNION" in {
-      val ast = OrNode(Seq(Condition("numeric_fact", NumericFact(10.0)), Condition("string_fact", StringFact("somevalue"))))
+      val ast = OrNode(Seq(Condition("numeric_fact", NumericFact(10.0), Moment.Now(now)),
+                           Condition("string_fact", StringFact("somevalue"), Moment.Now(now))))
       val result = UnionSql(Seq(
-        BasicSql(SqlCondition(1, NumericFact(10.0))),
-        BasicSql(SqlCondition(2, StringFact("somevalue")))
+        BasicSql(SqlCondition(1, NumericFact(10.0), now)),
+        BasicSql(SqlCondition(2, StringFact("somevalue"), now))
       ))
       queryTranslator(ast, facts) must equalTo(result)
     }
 
     "translate 'and' node AST to SQL INTERSECTION" in {
-      val ast = AndNode(Seq(Condition("numeric_fact", NumericFact(10.0)), Condition("string_fact", StringFact("somevalue"))))
+      val ast = AndNode(Seq(Condition("numeric_fact", NumericFact(10.0), Moment.Now(now)),
+                            Condition("string_fact", StringFact("somevalue"), Moment.Now(now))))
       val result = IntersectionSql(Seq(
-        BasicSql(SqlCondition(1, NumericFact(10.0))),
-        BasicSql(SqlCondition(2, StringFact("somevalue")))
+        BasicSql(SqlCondition(1, NumericFact(10.0), now)),
+        BasicSql(SqlCondition(2, StringFact("somevalue"), now))
       ))
       queryTranslator(ast, facts) must equalTo(result)
     }

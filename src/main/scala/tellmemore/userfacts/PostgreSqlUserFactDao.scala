@@ -84,7 +84,7 @@ private[userfacts] object queryTranslator {
   def apply(ast: FactsQueryAst, facts: Map[String, Long]): SqlAst = {
     import tellmemore.queries.facts.FactsQueryAst.{AndNode, OrNode, Condition}
     ast match {
-      case Condition(fact, value) => BasicSql(SqlCondition(facts(fact), value))
+      case Condition(fact, value, moment) => BasicSql(SqlCondition(facts(fact), value, moment.tstamp))
       case OrNode(subqueries) => UnionSql(subqueries map {queryTranslator(_, facts)})
       case AndNode(subqueries) => IntersectionSql(subqueries map {queryTranslator(_, facts)})
     }

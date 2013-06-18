@@ -7,13 +7,15 @@ import tellmemore.{FactType, UserFact, NumericFact, StringFact}
 import tellmemore.userfacts.UserFactModel
 import org.specs2.mock.Mockito
 import org.joda.time.DateTime
+import tellmemore.stubs.FixedTimeProvider
+import tellmemore.queries.Moment
 
 class FactsQueryModelSpec extends Specification with Mockito {
   "FactsQueryModel" should {
     isolated
 
     val userFactModel = mock[UserFactModel]
-    val factsQueryModel = FactsQueryModel(userFactModel)
+    val factsQueryModel = FactsQueryModel(userFactModel, FixedTimeProvider())
 
     "return None when trying to search by invalid JSON string" in {
       val query = """{"field": "value}"""  // JSON with unclosed quotation
@@ -45,52 +47,55 @@ class FactsQueryModelSpec extends Specification with Mockito {
   }
 
   "JSON parser" should {
+    val now = DateTime.now
+    val parse = FactsQueryParser(FixedTimeProvider(now))
+
     "give back error for malformed JSON query" in {
       val str = """{"$BAD": [{"fact": 2.5}, {"fact2": "string"}]}"""
-      FactsQueryAst.parse(Json.parse(str)) must beLeft
+      parse(Json.parse(str)) must beLeft
     }
 
     "parse simple string fact condition" in {
       val str = """{"fact": "string"}"""
-      FactsQueryAst.parse(Json.parse(str)) must beRight(FactsQueryAst.Condition("fact", StringFact("string")))
+      parse(Json.parse(str)) must beRight(FactsQueryAst.Condition("fact", StringFact("string"), Moment.Now(now)))
     }
 
     "parse simple numeric fact condition" in {
       val str = """{"fact": 2.5}"""
-      FactsQueryAst.parse(Json.parse(str)) must beRight(FactsQueryAst.Condition("fact", NumericFact(2.5)))
+      parse(Json.parse(str)) must beRight(FactsQueryAst.Condition("fact", NumericFact(2.5), Moment.Now(now)))
     }
 
     "parse simple $and operator" in {
       val str = """{"$and": [{"fact": 2.5}, {"fact2": "string"}]}"""
-      FactsQueryAst.parse(Json.parse(str)) must beRight(
+      parse(Json.parse(str)) must beRight(
         FactsQueryAst.AndNode(Seq(
-          FactsQueryAst.Condition("fact", NumericFact(2.5)),
-          FactsQueryAst.Condition("fact2", StringFact("string"))
+          FactsQueryAst.Condition("fact", NumericFact(2.5), Moment.Now(now)),
+          FactsQueryAst.Condition("fact2", StringFact("string"), Moment.Now(now))
         ))
       )
     }
 
     "parse simple $or operator" in {
       val str = """{"$or": [{"fact": 2.5}, {"fact2": "string"}]}"""
-      FactsQueryAst.parse(Json.parse(str)) must beRight(
+      parse(Json.parse(str)) must beRight(
         FactsQueryAst.OrNode(Seq(
-          FactsQueryAst.Condition("fact", NumericFact(2.5)),
-          FactsQueryAst.Condition("fact2", StringFact("string"))
+          FactsQueryAst.Condition("fact", NumericFact(2.5), Moment.Now(now)),
+          FactsQueryAst.Condition("fact2", StringFact("string"), Moment.Now(now))
         ))
       )
     }
 
     "parse simple deeply embedded queries" in {
       val str = """{"$and": [{"$or": [{"fact": 2.5}, {"fact2": "string"}]}, {"$and": [{"fact3": 5.5}, {"fact4": "string2"}]}]}"""
-      FactsQueryAst.parse(Json.parse(str)) must beRight(
+      parse(Json.parse(str)) must beRight(
         FactsQueryAst.AndNode(Seq(
           FactsQueryAst.OrNode(Seq(
-            FactsQueryAst.Condition("fact", NumericFact(2.5)),
-            FactsQueryAst.Condition("fact2", StringFact("string"))
+            FactsQueryAst.Condition("fact", NumericFact(2.5), Moment.Now(now)),
+            FactsQueryAst.Condition("fact2", StringFact("string"), Moment.Now(now))
           )),
           FactsQueryAst.AndNode(Seq(
-            FactsQueryAst.Condition("fact3", NumericFact(5.5)),
-            FactsQueryAst.Condition("fact4", StringFact("string2"))
+            FactsQueryAst.Condition("fact3", NumericFact(5.5), Moment.Now(now)),
+            FactsQueryAst.Condition("fact4", StringFact("string2"), Moment.Now(now))
           ))
         ))
       )
