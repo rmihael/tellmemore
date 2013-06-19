@@ -10,8 +10,8 @@ object BuildSettings {
     scalaVersion := "2.10.2",
     scalacOptions += "-deprecation",
     scalacOptions += "-feature",
-    libraryDependencies ++= Seq(spring, springJdbc, dbcp, h2, flyway, jodaTime, anorm, specs2Spring,
-                                mockito, atomikos, playFramework, kiama, scalaz),
+    libraryDependencies ++= Seq(spring, springJdbc, dbcp, flyway, jodaTime, anorm, specs2Spring,
+                                mockito, atomikos, playFramework, kiama, scalaz, postgresqlJdbc),
     resolvers := Seq(springMilestoneRepo, typesafeRepo, localRepo, sonatypeSnapshotsRepo)
   )
 
@@ -29,7 +29,7 @@ object Dependencies {
   val playFramework = "play" %% "play" % play.core.PlayVersion.current
   val dbcp = "commons-dbcp" % "commons-dbcp" % "1.4"
   val spring = "org.springframework.scala" % "spring-scala" % "1.0.0.M2"
-  val h2 = "com.h2database" % "h2" % "1.3.171"
+  val postgresqlJdbc = "org.postgresql" % "postgresql" % "9.2-1003-jdbc4"
   val springJdbc = "org.springframework" % "spring-jdbc" % "3.2.2.RELEASE"
   val flyway = "com.googlecode.flyway" % "flyway-core" % "2.1.1"
   val jodaTime = "org.scalaj" %% "scalaj-time" % "0.6"

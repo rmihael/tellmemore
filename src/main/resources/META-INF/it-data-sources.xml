@@ -10,8 +10,8 @@
         <constructor-arg ref="dbcpDataSource"/>
     </bean>
     <bean id="dbcpDataSource" class="org.apache.commons.dbcp.BasicDataSource" destroy-method="close">
-        <property name="driverClassName" value="org.h2.Driver"/>
-        <property name="url" value="jdbc:h2:mem:tellmemore;MODE=POSTGRESQL"/>
+        <property name="driverClassName" value="org.postgresql.Driver"/>
+        <property name="url" value="jdbc:postgresql:tellmemore-it"/>
     </bean>
 
 </beans>
