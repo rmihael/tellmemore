@@ -15,7 +15,7 @@ import tellmemore.queries.facts.{FactsQuery, FactsQueryAst}
 case class PostgreSqlUserFactDao(dataSource: DataSource) extends UserFactDao {
   private[this] val simple =
     get[Long]("facts.client_id") ~
-    get[Short]("facts.fact_type") ~
+    get[Int]("facts.fact_type") ~
     get[String]("facts.fact_name") ~
     get[Long]("facts.created") map {
       case clientId~factType~factName~created if factType < FactType.maxId =>

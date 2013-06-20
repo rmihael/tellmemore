@@ -20,8 +20,10 @@ class UserFactModelItSpec extends IntegrationTest {
   trait clientsAndUsers extends Scope {
     val client = Client("email1@domain.com", "Test user 1", DateTime.now)
     val user = User(UserId(client.id, "newuser"), DateTime.now)
+    val user2 = User(UserId(client.id, "newuser2"), DateTime.now)
     clientModel.create(client)
     userModel.insert(user)
+    userModel.insert(user2)
   }
 
   "UserFactModel" should {
@@ -77,6 +79,20 @@ class UserFactModelItSpec extends IntegrationTest {
         AndNode(Seq(Condition("fact3", NumericFact(5.5), Moment.Now(now)),
                     Condition("fact4", StringFact("string2"), Moment.Now(now))))
       ))
+      val query = FactsQuery(client.id, ast)
+      userFactModel.find(query) must equalTo(Set(user.id.externalId))
+    }
+
+    "find users by condition with time specified" in new clientsAndUsers {
+      userFactModel.setForUser(user.id, Map("fact2" -> StringFact("a")))
+      userFactModel.setForUser(user2.id, Map("fact2" -> StringFact("b")))
+      userFactModel.setForUser(user.id, Map("fact2" -> StringFact("b")))
+      userFactModel.setForUser(user2.id, Map("fact2" -> StringFact("c")))
+      val now = DateTime.now
+      userFactModel.setForUser(user.id, Map("fact2" -> StringFact("c")))
+      userFactModel.setForUser(user2.id, Map("fact2" -> StringFact("d")))
+
+      val ast = Condition("fact2", StringFact("b"), Moment.Timestamp(now))
       val query = FactsQuery(client.id, ast)
       userFactModel.find(query) must equalTo(Set(user.id.externalId))
     }
