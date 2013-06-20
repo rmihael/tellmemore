@@ -7,8 +7,8 @@ import tellmemore.{FactType, UserFact, NumericFact, StringFact}
 import tellmemore.userfacts.UserFactModel
 import org.specs2.mock.Mockito
 import org.joda.time.DateTime
-import tellmemore.stubs.FixedTimeProvider
 import tellmemore.queries.Moment
+import tellmemore.stubs.FixedTimeProvider
 
 class FactsQueryModelSpec extends Specification with Mockito {
   "FactsQueryModel" should {

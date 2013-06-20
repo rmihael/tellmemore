@@ -5,8 +5,8 @@ import org.springframework.transaction.PlatformTransactionManager
 import org.scala_tools.time.Imports._
 
 import tellmemore.{UserFact, UserId, FactType, NumericFact, StringFact}
-import tellmemore.stubs.FixedTimeProvider
 import org.specs2.mock.Mockito
+import tellmemore.stubs.FixedTimeProvider
 
 class UserFactModelSpec extends Specification with Mockito {
   isolated

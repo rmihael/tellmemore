@@ -3,12 +3,6 @@
        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
        xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd">
 
-    <bean id="dataSource" class="org.springframework.jdbc.datasource.TransactionAwareDataSourceProxy">
-        <constructor-arg ref="lazyDataSource"/>
-    </bean>
-    <bean id="lazyDataSource" class="org.springframework.jdbc.datasource.LazyConnectionDataSourceProxy">
-        <constructor-arg ref="dbcpDataSource"/>
-    </bean>
     <bean id="dbcpDataSource" class="org.apache.commons.dbcp.BasicDataSource" destroy-method="close">
         <property name="driverClassName" value="org.postgresql.Driver"/>
         <property name="url" value="jdbc:postgresql:tellmemore"/>
