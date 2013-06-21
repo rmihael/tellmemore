@@ -3,7 +3,6 @@ package tellmemore.userfacts
 import org.specs2.mutable.Specification
 
 import tellmemore.queries.facts.FactsQueryAst.{AndNode, OrNode, Condition}
-import tellmemore.{StringFact, NumericFact}
 import tellmemore.queries.Moment
 import org.joda.time.DateTime
 

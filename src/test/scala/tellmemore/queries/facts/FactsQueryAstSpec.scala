@@ -2,7 +2,7 @@ package tellmemore.queries.facts
 
 import org.specs2.mutable.Specification
 
-import tellmemore.{StringFact, NumericFact}
+import tellmemore.userfacts.{StringFact, NumericFact}
 import tellmemore.queries.Moment
 import org.joda.time.DateTime
 

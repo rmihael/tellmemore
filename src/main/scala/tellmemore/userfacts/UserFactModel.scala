@@ -5,11 +5,9 @@ import scala.language.postfixOps
 import org.springframework.scala.transaction.support.TransactionManagement
 import org.springframework.transaction.PlatformTransactionManager
 
-import tellmemore.{UserId, UserFact}
+import tellmemore.UserId
 import tellmemore.infrastructure.time.TimeProvider
 import tellmemore.queries.facts.FactsQuery
-import scala.util.Try
-import scala.util.control.NonFatal
 
 case class UserFactModel(userFactDao: UserFactDao,
                          transactionManager: PlatformTransactionManager,

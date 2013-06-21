@@ -1,6 +1,6 @@
 package tellmemore.userfacts
 
-import tellmemore.{UserId, UserFact}
+import tellmemore.UserId
 import org.joda.time.DateTime
 import tellmemore.queries.facts.FactsQuery
 

@@ -2,8 +2,6 @@ package tellmemore.userfacts
 
 import org.scala_tools.time.Imports._
 
-import tellmemore.{StringFact, NumericFact, FactValue}
-
 sealed abstract class SqlAst {
   val sql: String
 }

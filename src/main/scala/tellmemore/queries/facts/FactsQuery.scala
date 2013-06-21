@@ -1,6 +1,6 @@
 package tellmemore.queries.facts
 
-import tellmemore.FactValue
+import tellmemore.userfacts.FactValue
 import tellmemore.queries.Moment
 
 case class FactsQuery(clientId: String, ast: FactsQueryAst)

@@ -10,24 +10,6 @@ case class User(id: UserId, created: DateTime)
 
 case class Event(userId: UserId, eventName: String, happened: DateTime)
 
-object FactType extends Enumeration {
-  type FactType = Value
-  val String, Numeric = Value
-}
-import FactType._
-
-case class UserFact(clientId: String, name: String, factType: FactType, created: DateTime)
-
-sealed abstract class FactValue {
-  val factType: FactType
-}
-case class StringFact(value: String) extends FactValue {
-  val factType = String
-}
-case class NumericFact(value: Double) extends FactValue {
-  val factType = Numeric
-}
-
 sealed abstract class TimeSpan {
   val start: DateTime
   val end: DateTime
