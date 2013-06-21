@@ -7,7 +7,6 @@ import org.specs2.specification.Scope
 import tellmemore.clients.ClientModel
 import tellmemore.users.UserModel
 import tellmemore.queries.facts.FactsQueryAst.{AndNode, OrNode, Condition}
-import tellmemore.{StringFact, NumericFact}
 import tellmemore.{UserId, User, Client, IntegrationTest}
 import tellmemore.queries.facts.FactsQuery
 import tellmemore.queries.Moment

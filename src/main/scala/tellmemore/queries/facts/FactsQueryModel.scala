@@ -3,7 +3,7 @@ package tellmemore.queries.facts
 import play.api.libs.json.{Json, JsValue, JsArray, JsObject, JsString, JsNumber}
 import org.codehaus.jackson.JsonParseException
 
-import tellmemore.{NumericFact, StringFact}
+import tellmemore.userfacts.{NumericFact, StringFact}
 import tellmemore.userfacts.UserFactModel
 import tellmemore.infrastructure.time.TimeProvider
 import tellmemore.queries.Moment

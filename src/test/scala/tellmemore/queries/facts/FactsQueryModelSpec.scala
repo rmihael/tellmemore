@@ -3,7 +3,7 @@ package tellmemore.queries.facts
 import org.specs2.mutable.Specification
 import play.api.libs.json.Json
 
-import tellmemore.{FactType, UserFact, NumericFact, StringFact}
+import tellmemore.userfacts.{FactType, UserFact, NumericFact, StringFact}
 import tellmemore.userfacts.UserFactModel
 import org.specs2.mock.Mockito
 import org.joda.time.DateTime

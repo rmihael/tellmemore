@@ -1,7 +1,6 @@
 package tellmemore.userfacts
 
 import org.specs2.mutable.Specification
-import tellmemore.{StringFact, NumericFact}
 import org.joda.time.DateTime
 
 class SqlAstSpec extends Specification {

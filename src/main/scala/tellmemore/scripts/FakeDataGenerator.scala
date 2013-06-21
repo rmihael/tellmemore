@@ -2,7 +2,8 @@ package tellmemore.scripts
 
 import org.springframework.context.support.ClassPathXmlApplicationContext
 
-import tellmemore.{Client, User, UserId, Event, NumericFact, StringFact, FactValue}
+import tellmemore.{Client, User, UserId, Event}
+import tellmemore.userfacts.{NumericFact, StringFact, FactValue}
 import tellmemore.users.UserModel
 import tellmemore.clients.ClientModel
 import tellmemore.events.EventModel
