@@ -22,5 +22,12 @@ case class EventModel(eventDao: EventDao, transactionManager: PlatformTransactio
     bulkInsert(Set(event))
   }
 
-  def getEventNames(clientId: String): Set[String] = ???
+  /**
+   * Returns a set of event names available for this client.
+   * @param clientId
+   *                id of client for which this set must be returned
+   * @return
+   *         unique set of events names that user has available
+   */
+  def getEventNames(clientId: String): Set[String] = eventDao.getEventNames(clientId)
 }

@@ -26,7 +26,6 @@ object Resolvers {
 }
 
 object Dependencies {
-  val playFramework = "play" %% "play" % play.core.PlayVersion.current
   val dbcp = "commons-dbcp" % "commons-dbcp" % "1.4"
   val spring = "org.springframework.scala" % "spring-scala" % "1.0.0.M2"
   val postgresqlJdbc = "org.postgresql" % "postgresql" % "9.2-1003-jdbc4"
@@ -40,6 +39,7 @@ object Dependencies {
 //  val specs2 = "org.specs2" %% "specs2" % "1.14" % "it,test"
   val mockito = "org.mockito" % "mockito-all" % "1.9.5" % "it,test"
   val atomikos = "com.atomikos" % "transactions-jdbc" % "3.8.0" % "it,test"
+  val playFramework = "play" %% "play" % "2.1.1"
 }
 
 object ApplicationBuild extends Build {
@@ -56,5 +56,7 @@ object ApplicationBuild extends Build {
     .settings(Defaults.itSettings : _*)
     .settings(parallelExecution in IntegrationTest := false)
 
-  lazy val tellmemore_web = play.Project("tellmemore-web", appVersion, Seq(), path=file("tellmemore-web")).configs(IntegrationTest).settings(Defaults.itSettings : _*).settings(parallelExecution in IntegrationTest := false) dependsOn(main)
+  lazy val tellmemoreWeb = play.Project("tellmemore-web", appVersion, Seq(), path=file("tellmemore-web"))
+    .configs(IntegrationTest).settings(Defaults.itSettings : _*)
+    .settings(parallelExecution in IntegrationTest := false) dependsOn main
 }

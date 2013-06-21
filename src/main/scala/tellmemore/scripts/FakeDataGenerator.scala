@@ -1,3 +1,5 @@
+package tellmemore.scripts
+
 import org.springframework.context.support.ClassPathXmlApplicationContext
 
 import tellmemore.{Client, User, UserId, Event, NumericFact, StringFact, FactValue}
@@ -286,7 +288,13 @@ case class ReallyConvenientFactObject(user: User, fact: UserFactValues)
 
 
 object FakeDataGenerator {
-  def main(args: Array[String]) {
+
+  /**
+   * Generates a data by rules specified.
+   * Modify this function to get the needed set for you. Create similar methods
+   * for different data sets.
+   */
+  def generate() {
     val rule1 = new TotalEventRule("Cool event", _>_, 30)
     val rule2 = new TotalEventRule("Cool event", _<_, 5)
     val rule3 = new TotalEventRule("Second event", _>=_, 100)
@@ -297,6 +305,13 @@ object FakeDataGenerator {
     DataGenerator.generateObjectsForRule(new StringFactRule("String fact", "cool value"), 50)
     val savedUsers = DataGenerator.userModel.getAllByClientId("bestclient@example.com")
     println("Successfully saved " + savedUsers.toList.length.toString + " users")
+    val uniqueEventNames = DataGenerator.eventModel.getEventNames("bestclient@example.com")
+    println(uniqueEventNames.toString())
+    val uniqueEventFacts = DataGenerator.factModel.getUserFactsForClient("bestclient@example.com")
+    println(uniqueEventFacts.toString())
+  }
+  def main(args: Array[String]) {
+    generate()
   }
 
 }

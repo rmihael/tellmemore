@@ -47,4 +47,16 @@ case class PostgreSqlEventDao(dataSource: DataSource) extends EventDao {
       batchInsert.execute()
     }
   }
+
+  /**
+   * Returns a list of unique event names for this client id.
+   * @param clientId
+   *                id of client to get events for.
+   * @return
+   */
+  def getEventNames(clientId: String): Set[String] = DB.withConnection(dataSource) { implicit connection =>
+    SQL("""SELECT DISTINCT event_name FROM events WHERE client_id=(SELECT id FROM clients WHERE email={cid})""").
+      on("cid" -> clientId).
+      as(str("event_name") *).toSet
+  }
 }
