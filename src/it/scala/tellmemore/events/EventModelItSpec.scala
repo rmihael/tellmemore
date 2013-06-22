@@ -23,10 +23,7 @@ class EventModelItSpec extends IntegrationTest {
     }
 
     "get all events by client id" in new eventsData {
-      var eventsCount = 0
-      eventsMap.values.foreach( eventsCount += _ )
-
-      eventModel.getAllByClientId(clientId).size must equalTo(eventsCount)
+      eventModel.getAllByClientId(clientId).size must equalTo(eventsMap.values.sum)
     }
 
     "persist events" in {
