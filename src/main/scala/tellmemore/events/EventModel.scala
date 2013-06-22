@@ -2,7 +2,8 @@ package tellmemore.events
 
 import org.springframework.transaction.PlatformTransactionManager
 import org.springframework.scala.transaction.support.TransactionManagement
-import tellmemore.{UserId, TimeSpan, Event}
+import tellmemore.{TimeSpan, Event}
+import tellmemore.users.UserId
 
 case class EventModel(eventDao: EventDao, transactionManager: PlatformTransactionManager) extends TransactionManagement {
   def getByUserIdAndTimestamp(userId: UserId, timeSpan: TimeSpan): Set[Event] =

@@ -20,14 +20,14 @@ object Playground {
     val userFactModel = context.getBean("userFactModel").asInstanceOf[UserFactModel]
     val factsQueryModel = context.getBean("factsQueryModel").asInstanceOf[FactsQueryModel]
 
-    userModel.bulkInsert(Set(User(UserId("someid", "userid"), DateTime.now)))
+    userModel.bulkInsert(Set(User(UserId("someid", "userid"), "Some User", DateTime.now)))
 
     clientModel.create(Client("rmihael@gmail.com", "Michael", DateTime.now))
-    userModel.bulkInsert(Set(User(UserId("rmihael@gmail.com", "m.korbakov@nimble.com"), DateTime.now)))
+    userModel.bulkInsert(Set(User(UserId("rmihael@gmail.com", "m.korbakov@nimble.com"), "Some User", DateTime.now)))
     userModel.getAllByClientId("rmihael@gmail.com")
     userFactModel.setForUser(UserId("rmihael@gmail.com", "m.korbakov@nimble.com"),
       Map("string_fact" -> StringFact("String value"), "numeric_fact" -> NumericFact(2.5)))
 
-    userModel.bulkInsert(Set(User(UserId("someid", "userid"), DateTime.now)))
+    userModel.bulkInsert(Set(User(UserId("someid", "userid"), "Some User", DateTime.now)))
   }
 }

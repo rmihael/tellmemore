@@ -5,8 +5,6 @@ import org.specs2.mutable._
 import org.springframework.transaction.PlatformTransactionManager
 import org.scala_tools.time.Imports._
 
-import tellmemore.{UserId, User}
-
 class UserModelSpec extends Specification with Mockito {
   isolated
 
@@ -14,7 +12,7 @@ class UserModelSpec extends Specification with Mockito {
   val userDao = mock[UserDao]
   val userModel = UserModel(userDao, txManager)
 
-  val user = User(UserId("client_id", "user_id"), DateTime.now)
+  val user = User(UserId("client_id", "user_id"), "Some user", DateTime.now)
 
   "The user model" should {
     "delegate getById to UserDao" in {

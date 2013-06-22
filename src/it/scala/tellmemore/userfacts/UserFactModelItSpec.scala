@@ -8,9 +8,7 @@ import tellmemore.queries.facts.FactsQueryAst._
 import tellmemore.IntegrationTest
 import tellmemore.queries.Moment
 import tellmemore.queries.facts.FactsQueryAst.AndNode
-import tellmemore.UserId
-import tellmemore.users.UserModel
-import tellmemore.User
+import tellmemore.users.{UserModel, User, UserId}
 import tellmemore.queries.facts.FactsQueryAst.NumericEqual
 import tellmemore.Client
 import tellmemore.clients.ClientModel
@@ -24,8 +22,8 @@ class UserFactModelItSpec extends IntegrationTest {
 
   trait clientsAndUsers extends Scope {
     val client = Client("email1@domain.com", "Test user 1", DateTime.now)
-    val user = User(UserId(client.id, "newuser"), DateTime.now)
-    val user2 = User(UserId(client.id, "newuser2"), DateTime.now)
+    val user = User(UserId(client.id, "newuser"), "New user", DateTime.now)
+    val user2 = User(UserId(client.id, "newuser2"), "Other new user", DateTime.now)
     clientModel.create(client)
     userModel.insert(user)
     userModel.insert(user2)

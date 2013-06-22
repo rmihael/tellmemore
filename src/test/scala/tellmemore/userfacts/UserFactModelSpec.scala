@@ -4,7 +4,7 @@ import org.specs2.mutable._
 import org.springframework.transaction.PlatformTransactionManager
 import org.scala_tools.time.Imports._
 
-import tellmemore.UserId
+import tellmemore.users.UserId
 import org.specs2.mock.Mockito
 import tellmemore.stubs.FixedTimeProvider
 

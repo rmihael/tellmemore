@@ -2,11 +2,9 @@ package tellmemore
 
 import org.scala_tools.time.Imports._
 
+import tellmemore.users.UserId
+
 case class Client(id: String, name: String, created: DateTime)
-
-case class UserId(clientId: String, externalId: String)
-
-case class User(id: UserId, created: DateTime)
 
 case class Event(userId: UserId, eventName: String, happened: DateTime)
 

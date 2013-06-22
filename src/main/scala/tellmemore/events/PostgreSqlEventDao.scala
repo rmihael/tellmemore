@@ -9,7 +9,8 @@ import anorm._
 import org.scala_tools.time.Imports._
 
 import tellmemore.infrastructure.DB
-import tellmemore.{UserId, Event}
+import tellmemore.Event
+import tellmemore.users.UserId
 
 case class PostgreSqlEventDao(dataSource: DataSource) extends EventDao {
   private[this] val simple =
@@ -23,14 +24,17 @@ case class PostgreSqlEventDao(dataSource: DataSource) extends EventDao {
 
   def getByUserIdAndTimestamp(userId: UserId, start: DateTime, end: DateTime): Set[Event] =
     DB.withConnection(dataSource) { implicit connection =>
-      SQL("""SELECT id, client_id, external_id, human_readable_id, created FROM users
-           WHERE client_id={client_id} AND external_id={external_id}""")
-        .on("external_id" -> userId.externalId, "client_id" -> userId.clientId)
+      SQL("""SELECT client_id, external_user_id, event_name, tstamp FROM events
+             WHERE client_id=(SELECT id FROM clients WHERE email={client_id}) AND external_id={external_id}
+             AND tstamp BETWEEN {start} AND {end}""")
+        .on("external_id" -> userId.externalId, "client_id" -> userId.clientId,
+            "start" -> start.millis, "end" -> end.millis)
         .as(simple *).toSet
     }
 
   def getAllByClientId(clientId: String): Set[Event] = DB.withConnection(dataSource) { implicit connection =>
-    SQL("SELECT id, client_id, external_id, human_readable_id, created FROM users WHERE client_id={client_id}")
+    SQL("""SELECT client_id, external_user_id, event_name, tstamp FROM events
+           WHERE client_id=(SELECT id FROM clients WHERE email={client_id})""")
       .on("client_id" -> clientId)
       .as(simple *).toSet
   }
@@ -39,7 +43,7 @@ case class PostgreSqlEventDao(dataSource: DataSource) extends EventDao {
     DB.withConnection(dataSource) { implicit connection =>
       val insertQuery = SQL(
         """INSERT INTO events(client_id, external_user_id, event_name, tstamp)
-         VALUES((SELECT id FROM clients WHERE email={client_id}), {external_user_id}, {event_name}, {tstamp})""")
+           VALUES((SELECT id FROM clients WHERE email={client_id}), {external_user_id}, {event_name}, {tstamp})""")
       val batchInsert = (insertQuery.asBatch /: events) {
         (sql, event) => sql.addBatchParams(event.userId.clientId, event.userId.externalId,
           event.eventName, event.happened.millis)

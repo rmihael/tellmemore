@@ -1,6 +1,7 @@
 package tellmemore.events
 
-import tellmemore.{Event, UserId}
+import tellmemore.{Event}
+import tellmemore.users.UserId
 import org.joda.time.DateTime
 
 trait EventDao {

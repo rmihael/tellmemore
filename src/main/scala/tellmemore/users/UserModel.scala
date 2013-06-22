@@ -3,8 +3,6 @@ package tellmemore.users
 import org.springframework.transaction.PlatformTransactionManager
 import org.springframework.scala.transaction.support.TransactionManagement
 
-import tellmemore.{User, UserId}
-
 case class UserModel(userDao: UserDao, transactionManager: PlatformTransactionManager) extends TransactionManagement {
   def getById(id: UserId): Option[User] = transactional() { txStatus =>
     userDao.getById(id)

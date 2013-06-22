@@ -9,27 +9,27 @@ import anorm.SqlParser._
 import anorm._
 import org.scala_tools.time.Imports._
 
-import tellmemore.{User, UserId}
 import tellmemore.infrastructure.DB
 
 case class PostgreSqlUserDao(dataSource: DataSource) extends UserDao {
   private[this] val simple =
     get[String]("users.external_id") ~
+    get[String]("users.human_readable_id") ~
     get[Long]("users.created") map {
-      case externalId~created => (externalId, new DateTime(created))
+      case externalId~humanReadableId~created => (externalId, humanReadableId, new DateTime(created))
     }
 
   def getById(id: UserId): Option[User] = DB.withConnection(dataSource) { implicit connection =>
-    SQL("""SELECT external_id, created FROM users
+    SQL("""SELECT external_id, human_readable_id, created FROM users
            WHERE client_id=(SELECT id FROM clients WHERE email = {client_id}) AND external_id={external_id}""")
       .on("external_id" -> id.externalId, "client_id" -> id.clientId)
-      .as(simple.singleOpt) map { case (_, created) => User(id, created) }
+      .as(simple.singleOpt) map { case (_, hri, created) => User(id, hri, created) }
   }
 
   def getAllByClientId(clientId: String): Set[User] = DB.withConnection(dataSource) { implicit connection =>
-    (SQL("SELECT external_id, created FROM users WHERE client_id=(SELECT id FROM clients WHERE email={client_id})")
+    (SQL("SELECT external_id, human_readable_id, created FROM users WHERE client_id=(SELECT id FROM clients WHERE email={client_id})")
       .on("client_id" -> clientId)
-      .as(simple *) map { case (externalId, created) => User(UserId(clientId, externalId), created)})
+      .as(simple *) map { case (externalId, hri, created) => User(UserId(clientId, externalId), hri, created)})
     .toSet
   }
 
@@ -39,10 +39,10 @@ case class PostgreSqlUserDao(dataSource: DataSource) extends UserDao {
       case 0 => Right(0)
       case _ => {
         val insertQuery = SQL(
-          """INSERT INTO users(client_id, external_id, created)
-             VALUES((SELECT id FROM clients WHERE email={client_id}), {external_id}, {created})""")
+          """INSERT INTO users(client_id, external_id, human_readable_id, created)
+             VALUES((SELECT id FROM clients WHERE email={client_id}), {external_id}, {human_readable_id}, {created})""")
         val batchInsert = (insertQuery.asBatch /: users) {
-          (sql, user) => sql.addBatchParams(user.id.clientId, user.id.externalId, user.created.millis)
+          (sql, user) => sql.addBatchParams(user.id.clientId, user.id.externalId, user.humanReadableId, user.created.millis)
         }
         try {
           DB.withConnection(dataSource) { implicit connection =>

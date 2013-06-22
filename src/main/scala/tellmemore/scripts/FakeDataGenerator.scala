@@ -1,19 +1,17 @@
 package tellmemore.scripts
 
-import org.springframework.context.support.ClassPathXmlApplicationContext
-
-import tellmemore.{Client, User, UserId, Event}
-import tellmemore.userfacts.{NumericFact, StringFact, FactValue}
-import tellmemore.users.UserModel
-import tellmemore.clients.ClientModel
-import tellmemore.events.EventModel
-import tellmemore.userfacts.UserFactModel
 import org.scala_tools.time.Imports._
 import scala.util.Random
 import scala.collection.mutable
 import scala.util.control.Breaks._
-import tellmemore.userfacts.UserFactValues
 
+import tellmemore.{Client, Event}
+import tellmemore.userfacts.{NumericFact, StringFact, FactValue}
+import tellmemore.users.{User, UserId, UserModel}
+import tellmemore.clients.ClientModel
+import tellmemore.events.EventModel
+import tellmemore.userfacts.UserFactModel
+import tellmemore.userfacts.UserFactValues
 
 /**
  * Singleton that will actually generate the data.
@@ -53,7 +51,7 @@ class DataGenerator(userModel: UserModel, clientModel: ClientModel,
     val uid = generateUserId()
     this.usersGenerated += 1
 
-    User(uid, created)
+    User(uid, s"User $uid", created)
   }
 
   /**

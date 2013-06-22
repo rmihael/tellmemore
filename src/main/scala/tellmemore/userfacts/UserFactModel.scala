@@ -5,7 +5,7 @@ import scala.language.postfixOps
 import org.springframework.scala.transaction.support.TransactionManagement
 import org.springframework.transaction.PlatformTransactionManager
 
-import tellmemore.UserId
+import tellmemore.users.UserId
 import tellmemore.infrastructure.time.TimeProvider
 import tellmemore.queries.facts.FactsQuery
 

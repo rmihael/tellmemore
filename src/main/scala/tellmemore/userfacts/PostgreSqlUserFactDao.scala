@@ -8,7 +8,7 @@ import anorm._
 import anorm.SqlParser._
 import org.scala_tools.time.Imports._
 
-import tellmemore.UserId
+import tellmemore.users.UserId
 import tellmemore.infrastructure.DB
 import tellmemore.queries.facts.{FactsQuery, FactsQueryAst}
 
