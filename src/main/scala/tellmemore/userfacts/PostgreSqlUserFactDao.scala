@@ -66,8 +66,8 @@ case class PostgreSqlUserFactDao(dataSource: DataSource) extends UserFactDao {
 
   def find(query: FactsQuery): Set[String] = {
     // TODO: Achtung! Potential for SQL injection
-    val sqlAst = queryTranslator(query.ast, name2IdMap(query.clientId))
-    val users = DB.withConnection(dataSource) { implicit connection => SQL(sqlAst.sql).as(userIds *) }
+    val request = ast2sql(query.ast, name2IdMap(query.clientId))
+    val users = DB.withConnection(dataSource) { implicit connection => SQL(request).as(userIds *) }
     users.toSet
   }
 
@@ -78,19 +78,27 @@ case class PostgreSqlUserFactDao(dataSource: DataSource) extends UserFactDao {
       .as(factName2Id *)
       .toMap
   }
-}
 
-private[userfacts] object queryTranslator {
-  def apply(ast: FactsQueryAst, facts: Map[String, Long]): SqlAst = {
+  private[this] def ast2sql(a: FactsQueryAst, facts: Map[String, Long]): String = {
     import tellmemore.queries.facts.FactsQueryAst._
-    import SqlAst._
-    ast match {
-      case NumericEqual(fact, value, moment) => SqlNumericEquals(facts(fact), value, moment.tstamp)
-      case NumericGreaterThen(fact, value, moment) => SqlNumericGreaterThen(facts(fact), value, moment.tstamp)
-      case NumericLessThen(fact, value, moment) => SqlNumericLessThen(facts(fact), value, moment.tstamp)
-      case StringEqual(fact, value, moment) => SqlStringEquals(facts(fact), value, moment.tstamp)
-      case OrNode(subqueries) => UnionSql(subqueries map {queryTranslator(_, facts)})
-      case AndNode(subqueries) => IntersectionSql(subqueries map {queryTranslator(_, facts)})
+    a match {
+      case NumericEqual(fact, value, moment) => makeSql(facts(fact), moment.tstamp, "numeric_value", value.value.toString, "=")
+      case NumericGreaterThen(fact, value, moment) => makeSql(facts(fact), moment.tstamp, "numeric_value", value.value.toString, ">")
+      case NumericLessThen(fact, value, moment) => makeSql(facts(fact), moment.tstamp, "numeric_value", value.value.toString, "<")
+      case StringEqual(fact, value, moment) => makeSql(facts(fact), moment.tstamp, "string_value", s"'${value.value}'", "=")
+      case OrNode(subqueries) => subqueries map {ast2sql(_, facts)} mkString " UNION "
+      case AndNode(subqueries) => subqueries map {ast2sql(_, facts)} mkString " INTERSECT "
     }
   }
+
+  private[this] def makeSql(factId: Long, moment: DateTime, column: String, sqlValue: String, operator: String) =
+    s"""SELECT external_id FROM users WHERE id IN (
+      WITH slice AS (SELECT * FROM fact_values values1 WHERE values1.fact_id=$factId
+                     AND values1.tstamp <= ${moment.millis})
+      SELECT DISTINCT values1.user_id FROM
+        slice AS values1 LEFT JOIN slice AS values2
+        ON values1.user_id = values2.user_id AND values1.tstamp < values2.tstamp
+      WHERE values2.id IS NULL AND values1.$column $operator $sqlValue
+    )"""
+
 }

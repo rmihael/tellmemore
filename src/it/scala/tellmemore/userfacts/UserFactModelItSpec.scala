@@ -118,5 +118,9 @@ class UserFactModelItSpec extends IntegrationTest {
       val query = FactsQuery(client.id, ast)
       userFactModel.find(query) must equalTo(Set(user.id.externalId))
     }
+
+    "avoid SQL injections in facts queries" in {
+      skipped
+    }
   }
 }
