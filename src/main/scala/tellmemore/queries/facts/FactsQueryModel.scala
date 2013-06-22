@@ -3,12 +3,14 @@ package tellmemore.queries.facts
 import play.api.libs.json.{Json, JsValue, JsArray, JsObject, JsString, JsNumber}
 import org.codehaus.jackson.JsonParseException
 
-import tellmemore.userfacts.{FactType, UserFactModel}
+import tellmemore.userfacts.{UserFact, UserFactModel}
 import tellmemore.infrastructure.time.TimeProvider
 import tellmemore.queries.Moment
 import tellmemore.queries.facts.FactsQueryAst._
 
 case class FactsQueryModel(userFactModel: UserFactModel, timeProvider: TimeProvider) {
+  import UserFact._
+
   val parser = FactsQueryParser(timeProvider)
 
   def find(clientId: String, ast: FactsQueryAst): Option[Set[String]] = validate(clientId, ast) match {
@@ -37,12 +39,13 @@ case class FactsQueryModel(userFactModel: UserFactModel, timeProvider: TimeProvi
    */
   private[this] def validate(clientId: String, ast: FactsQueryAst): Boolean = {
     val facts = userFactModel.getUserFactsForClient(clientId)
-    ast map {
-      case StringEqual(fact, value, _) => facts.get(fact) exists { _.factType == FactType.String }
-      case NumericEqual(fact, value, _) => facts.get(fact) exists { _.factType == FactType.Numeric }
-      case NumericGreaterThen(fact, value, _) => facts.get(fact) exists { _.factType == FactType.Numeric }
-      case NumericLessThen(fact, value, _) => facts.get(fact) exists { _.factType == FactType.Numeric }
-    } forall identity
+    ast map {cond => cond -> facts.get(cond.fact)} forall {
+      case (StringEqual(_,_,_), Some(StringFact(_,_,_))) => true
+      case (NumericEqual(_,_,_), Some(NumericFact(_,_,_))) => true
+      case (NumericGreaterThen(_,_,_), Some(NumericFact(_,_,_))) => true
+      case (NumericLessThen(_,_,_), Some(NumericFact(_,_,_))) => true
+      case _ => false
+    }
   }
 }
 

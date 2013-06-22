@@ -12,6 +12,8 @@ import tellmemore.queries.facts.FactsQuery
 case class UserFactModel(userFactDao: UserFactDao,
                          transactionManager: PlatformTransactionManager,
                          timeProvider: TimeProvider) extends TransactionManagement {
+  import UserFact._
+
   /**
    * This method returns registry of all client facts for users
    * @param clientId client it to whom fetch facts
@@ -34,7 +36,7 @@ case class UserFactModel(userFactDao: UserFactDao,
    * @return if method succeeds then return value would be Right with number of facts updated. If there were any
    *         incompatibilities between fact values and existing fact types then return value would be Left with
    *         mapping between fact names and fact values that were found incompatible.
-   * @example setForUser(userId, Map("string fact" -> StringFact("string value"), "numeric fact" -> NumericFact(1.0)))
+   * @example setForUser(userId, Map("string fact" -> StringValue("string value"), "numeric fact" -> NumericValue(1.0)))
    */
   def setForUser(id: UserId, values: UserFactValues): Either[UserFactValues, Int] =
     transactional() { txStatus =>
@@ -43,7 +45,12 @@ case class UserFactModel(userFactDao: UserFactDao,
         case brokenFacts if brokenFacts.size == 0 => {
           val now = timeProvider.now
           val absentNames = getAbsentNames(values.keySet, facts.values)
-          val absentFacts = absentNames map {name => UserFact(id.clientId, name, values(name).factType, now)}
+          val absentFacts: Set[UserFact] = absentNames map { name =>
+            values(name) match {
+              case FactValue.StringValue(_) => StringFact(id.clientId, name, now)
+              case FactValue.NumericValue(_) => NumericFact(id.clientId, name, now)
+            }
+          }
           userFactDao.bulkInsert(absentFacts)
           userFactDao.setValuesForUser(id, values, now)
           Right(values.size)
@@ -64,9 +71,11 @@ case class UserFactModel(userFactDao: UserFactDao,
   private[this] def getAbsentNames(names: Set[String], facts: Iterable[UserFact]) = names diff (facts map {_.name} toSet)
 
   private[this] def detectBrokenValues(values: UserFactValues, facts: Map[String, UserFact]): Set[UserFact] = {
-    val badFacts = values collect {
-      case (name, v) if facts.get(name) exists {fact => v.factType != fact.factType} => facts(name)
+    val badFacts = values map {case (name, v) => facts.get(name) -> v} collect {
+      case (Some(fact@StringFact(_,_,_)), FactValue.StringValue(_)) => None
+      case (Some(fact@NumericFact(_,_,_)), FactValue.NumericValue(_)) => None
+      case (Some(fact), _) => Some(fact)
     }
-    badFacts.toSet
+    badFacts.flatten.toSet
   }
 }

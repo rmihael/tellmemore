@@ -48,32 +48,32 @@ class UserFactModelItSpec extends IntegrationTest {
     }
 
     "find users by single numeric equal" in new clientsAndUsers {
-      userFactModel.setForUser(user.id, Map("fact" -> NumericFact(2.5)))
+      userFactModel.setForUser(user.id, Map("fact" -> FactValue.NumericValue(2.5)))
       val ast = NumericEqual("fact", 2.5, Moment.Now(DateTime.now))
       userFactModel.find(FactsQuery(client.id, ast)) must equalTo(Set(user.id.externalId))
     }
 
     "find users by single numeric greater then" in new clientsAndUsers {
-      userFactModel.setForUser(user.id, Map("fact" -> NumericFact(2.5)))
+      userFactModel.setForUser(user.id, Map("fact" -> FactValue.NumericValue(2.5)))
       val ast = NumericGreaterThen("fact", 2.0, Moment.Now(DateTime.now))
       userFactModel.find(FactsQuery(client.id, ast)) must equalTo(Set(user.id.externalId))
     }
 
     "find users by single numeric less then" in new clientsAndUsers {
-      userFactModel.setForUser(user.id, Map("fact" -> NumericFact(2.5)))
+      userFactModel.setForUser(user.id, Map("fact" -> FactValue.NumericValue(2.5)))
       val ast = NumericLessThen("fact", 3.0, Moment.Now(DateTime.now))
       userFactModel.find(FactsQuery(client.id, ast)) must equalTo(Set(user.id.externalId))
     }
 
     "find users by single string equal" in new clientsAndUsers {
-      userFactModel.setForUser(user.id, Map("fact2" -> StringFact("value")))
+      userFactModel.setForUser(user.id, Map("fact2" -> FactValue.StringValue("value")))
       val ast = StringEqual("fact2", "value", Moment.Now(DateTime.now))
       userFactModel.find(FactsQuery(client.id, ast)) must equalTo(Set(user.id.externalId))
     }
 
 
     "find users by OR query" in new clientsAndUsers {
-      userFactModel.setForUser(user.id, Map("fact" -> NumericFact(2.5), "fact2" -> StringFact("notstring")))
+      userFactModel.setForUser(user.id, Map("fact" -> FactValue.NumericValue(2.5), "fact2" -> FactValue.StringValue("notstring")))
       val now = DateTime.now
       val ast = OrNode(Seq(NumericEqual("fact", 2.5, Moment.Now(now)),
                            StringEqual("fact2", "string", Moment.Now(now))))
@@ -81,7 +81,7 @@ class UserFactModelItSpec extends IntegrationTest {
     }
 
     "find users by AND query" in new clientsAndUsers {
-      userFactModel.setForUser(user.id, Map("fact" -> NumericFact(2.5), "fact2" -> StringFact("string")))
+      userFactModel.setForUser(user.id, Map("fact" -> FactValue.NumericValue(2.5), "fact2" -> FactValue.StringValue("string")))
       val now = DateTime.now
       val ast = AndNode(Seq(NumericEqual("fact", 2.5, Moment.Now(now)),
                             StringEqual("fact2", "string", Moment.Now(now))))
@@ -89,8 +89,8 @@ class UserFactModelItSpec extends IntegrationTest {
     }
 
     "find users by complex AND-OR query" in new clientsAndUsers {
-      userFactModel.setForUser(user.id, Map("fact" -> NumericFact(2.5), "fact2" -> StringFact("notstring"),
-                                            "fact3" -> NumericFact(5.5), "fact4" -> StringFact("string2")))
+      userFactModel.setForUser(user.id, Map("fact" -> FactValue.NumericValue(2.5), "fact2" -> FactValue.StringValue("notstring"),
+                                            "fact3" -> FactValue.NumericValue(5.5), "fact4" -> FactValue.StringValue("string2")))
       val now = DateTime.now
       val ast = AndNode(Seq(
         OrNode(Seq(NumericEqual("fact", 2.5, Moment.Now(now)),
@@ -103,13 +103,13 @@ class UserFactModelItSpec extends IntegrationTest {
     }
 
     "find users by condition with time specified" in new clientsAndUsers {
-      userFactModel.setForUser(user.id, Map("fact2" -> StringFact("a")))
-      userFactModel.setForUser(user2.id, Map("fact2" -> StringFact("b")))
-      userFactModel.setForUser(user.id, Map("fact2" -> StringFact("b")))
-      userFactModel.setForUser(user2.id, Map("fact2" -> StringFact("c")))
+      userFactModel.setForUser(user.id, Map("fact2" -> FactValue.StringValue("a")))
+      userFactModel.setForUser(user2.id, Map("fact2" -> FactValue.StringValue("b")))
+      userFactModel.setForUser(user.id, Map("fact2" -> FactValue.StringValue("b")))
+      userFactModel.setForUser(user2.id, Map("fact2" -> FactValue.StringValue("c")))
       val now = DateTime.now
-      userFactModel.setForUser(user.id, Map("fact2" -> StringFact("c")))
-      userFactModel.setForUser(user2.id, Map("fact2" -> StringFact("d")))
+      userFactModel.setForUser(user.id, Map("fact2" -> FactValue.StringValue("c")))
+      userFactModel.setForUser(user2.id, Map("fact2" -> FactValue.StringValue("d")))
 
       val ast = StringEqual("fact2", "b", Moment.Timestamp(now))
       val query = FactsQuery(client.id, ast)

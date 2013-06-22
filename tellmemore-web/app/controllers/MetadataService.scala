@@ -12,11 +12,17 @@ import tellmemore.events.EventModel
  * for metadata needed for client application.
  */
 case class MetadataService(eventModel: EventModel, factsModel: UserFactModel) extends Controller {
+  import UserFact._
+
   implicit val factsWrites = new Writes[UserFact] {
     def writes(f: UserFact): JsValue = {
+      val factType = f match {
+        case StringFact(_,_,_) => "String"
+        case NumericFact(_,_,_) => "Numeric"
+      }
       Json.obj(
         "name" -> f.name,
-        "fact_type" -> f.factType.toString
+        "fact_type" -> factType
       )
     }
   }

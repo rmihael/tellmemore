@@ -3,14 +3,15 @@ package tellmemore.queries.facts
 import org.specs2.mutable.Specification
 import play.api.libs.json.Json
 
-import tellmemore.userfacts.{FactType, UserFact}
-import tellmemore.userfacts.UserFactModel
 import org.specs2.mock.Mockito
 import org.joda.time.DateTime
 import tellmemore.queries.Moment
+import tellmemore.userfacts.{UserFactModel, UserFact}
 import tellmemore.stubs.FixedTimeProvider
 
 class FactsQueryModelSpec extends Specification with Mockito {
+  import UserFact._
+
   "FactsQueryModel" should {
     isolated
 
@@ -33,13 +34,13 @@ class FactsQueryModelSpec extends Specification with Mockito {
     }
 
     "return None on non-matching value type for fact" in {
-      val fact = UserFact("some@client.com", "fact", FactType.Numeric, DateTime.now)
+      val fact = NumericFact("some@client.com", "fact", DateTime.now)
       userFactModel.getUserFactsForClient("some@client.com") returns Map("fact" -> fact)
       factsQueryModel.find("some@client.com", """{"fact": "string"}""") must beNone
     }
 
     "delegate execution of correct queries to UserFactModel" in {
-      val fact = UserFact("some@client.com", "fact", FactType.String, DateTime.now)
+      val fact = StringFact("some@client.com", "fact", DateTime.now)
       userFactModel.getUserFactsForClient("some@client.com") returns Map("fact" -> fact)
       userFactModel.find(any[FactsQuery]) returns Set("someuser")
       factsQueryModel.find("some@client.com", """{"fact": "string"}""") must beSome(Set("someuser"))
@@ -47,8 +48,6 @@ class FactsQueryModelSpec extends Specification with Mockito {
   }
 
   "JSON parser" should {
-    import FactsQueryAst._
-
     val now = DateTime.now
     val parse = FactsQueryParser(FixedTimeProvider(now))
 

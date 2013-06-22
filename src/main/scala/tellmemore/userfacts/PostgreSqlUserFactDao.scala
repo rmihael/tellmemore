@@ -13,13 +13,15 @@ import tellmemore.infrastructure.DB
 import tellmemore.queries.facts.{FactsQuery, FactsQueryAst}
 
 case class PostgreSqlUserFactDao(dataSource: DataSource) extends UserFactDao {
+  import UserFact._
+
   private[this] val simple =
     get[Long]("facts.client_id") ~
     get[Int]("facts.fact_type") ~
     get[String]("facts.fact_name") ~
     get[Long]("facts.created") map {
-      case clientId~factType~factName~created if factType < FactType.maxId =>
-        Some(UserFact(clientId.toString, factName, FactType(factType), new DateTime(created)))
+      case clientId~0~factName~created => Some(StringFact(clientId.toString, factName, new DateTime(created)))
+      case clientId~1~factName~created => Some(NumericFact(clientId.toString, factName, new DateTime(created)))
       case _ => None // TODO: Add log about data inconsistency
     }
 
@@ -48,8 +50,8 @@ case class PostgreSqlUserFactDao(dataSource: DataSource) extends UserFactDao {
          (SELECT id FROM users WHERE external_id = {user_id}),
          {numeric_value}, {string_value}, {tstamp})""")
     val batchInsert = (insertQuery.asBatch /: values.toSeq) {
-      case (sql, (factName, NumericFact(value))) => sql.addBatchParams(id.clientId, factName, id.externalId, value, None, tstamp.millis)
-      case (sql, (factName, StringFact(value))) => sql.addBatchParams(id.clientId, factName, id.externalId, None, value, tstamp.millis)
+      case (sql, (factName, FactValue.NumericValue(value))) => sql.addBatchParams(id.clientId, factName, id.externalId, value, None, tstamp.millis)
+      case (sql, (factName, FactValue.StringValue(value))) => sql.addBatchParams(id.clientId, factName, id.externalId, None, value, tstamp.millis)
     }
     DB.withConnection(dataSource) { implicit connection => batchInsert.execute() }
   }
@@ -59,7 +61,13 @@ case class PostgreSqlUserFactDao(dataSource: DataSource) extends UserFactDao {
       """INSERT INTO facts(client_id, fact_type, fact_name, created)
          VALUES((SELECT id FROM clients WHERE email={client_id}), {fact_type}, {fact_name}, {created})""")
     val batchInsert = (insertQuery.asBatch /: facts) {
-      (sql, fact) => sql.addBatchParams(fact.clientId, fact.factType.id, fact.name, fact.created.millis)
+      (sql, fact) => {
+        val factType = fact match {
+          case StringFact(_,_,_) => 0
+          case NumericFact(_,_,_) => 1
+        }
+        sql.addBatchParams(fact.clientId, factType, fact.name, fact.created.millis)
+      }
     }
     DB.withConnection(dataSource) { implicit connection => batchInsert.execute() }
   }

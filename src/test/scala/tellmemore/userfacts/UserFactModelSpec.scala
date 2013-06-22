@@ -9,6 +9,8 @@ import org.specs2.mock.Mockito
 import tellmemore.stubs.FixedTimeProvider
 
 class UserFactModelSpec extends Specification with Mockito {
+  import UserFact._
+
   isolated
 
   val txManager = mock[PlatformTransactionManager]
@@ -16,9 +18,9 @@ class UserFactModelSpec extends Specification with Mockito {
   val now = DateTime.now
   val userFactModel = UserFactModel(userFactDao, txManager, FixedTimeProvider(now))
 
-  val facts = Set(
-    UserFact("client@domain.com", "numeric fact", FactType.Numeric, now),
-    UserFact("client@domain.com", "string fact", FactType.String, now)
+  val facts: Set[UserFact] = Set(
+    NumericFact("client@domain.com", "numeric fact", now),
+    StringFact("client@domain.com", "string fact", now)
   )
   val userId = UserId("client@domain.com", "user@domain.com")
 
@@ -30,26 +32,26 @@ class UserFactModelSpec extends Specification with Mockito {
 
     "create missing facts when doing setForUser" in {
       userFactDao.getByClientId("client@domain.com") returns Set()
-      val values = Map("string fact" -> StringFact("string value"), "numeric fact" -> NumericFact(1.0))
+      val values = Map("string fact" -> FactValue.StringValue("string value"), "numeric fact" -> FactValue.NumericValue(1.0))
 
       userFactModel.setForUser(userId, values)
 
       there was one(userFactDao).bulkInsert(Set(
-        UserFact(userId.clientId, "string fact", FactType.String, now),
-        UserFact(userId.clientId, "numeric fact", FactType.Numeric, now)
+        StringFact(userId.clientId, "string fact", now),
+        NumericFact(userId.clientId, "numeric fact", now)
       ))
     }
 
     "detect wrong types for fact values in setForUser" in {
       userFactDao.getByClientId("client@domain.com") returns facts
-      val values = Map("numeric fact" -> StringFact("string value"), "string fact" -> NumericFact(1.0))
+      val values = Map("numeric fact" -> FactValue.StringValue("string value"), "string fact" -> FactValue.NumericValue(1.0))
 
       userFactModel.setForUser(userId, values) must beLeft(values)
     }
 
     "handle combination of existing and non-existing facts in setForUser" in {
       userFactDao.getByClientId("client@domain.com") returns facts
-      val values = Map("extra fact" -> StringFact("string value"), "numeric fact" -> NumericFact(1.0))
+      val values = Map("extra fact" -> FactValue.StringValue("string value"), "numeric fact" -> FactValue.NumericValue(1.0))
 
       userFactModel.setForUser(userId, values) must beRight(values.size)
     }

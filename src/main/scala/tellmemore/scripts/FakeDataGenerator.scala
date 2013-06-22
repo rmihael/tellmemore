@@ -6,7 +6,7 @@ import scala.collection.mutable
 import scala.util.control.Breaks._
 
 import tellmemore.{Client, Event}
-import tellmemore.userfacts.{NumericFact, StringFact, FactValue}
+import tellmemore.userfacts.FactValue
 import tellmemore.users.{User, UserId, UserModel}
 import tellmemore.clients.ClientModel
 import tellmemore.events.EventModel
@@ -246,7 +246,7 @@ class IntFactRule(fact_name: String, operator: (Int, Int) => Boolean, threshold:
    * Sequence of objects generated for this event
    */
   def generateRuleMatch(user: User): Set[ReallyConvenientFactObject] = {
-    val s = ReallyConvenientFactObject(user, Map[String, FactValue](this.fact_name -> NumericFact(this.getFactValue) ))
+    val s = ReallyConvenientFactObject(user, Map[String, FactValue](this.fact_name -> FactValue.NumericValue(this.getFactValue) ))
     Set[ReallyConvenientFactObject](s)
   }
 }
@@ -273,7 +273,7 @@ class StringFactRule(fact_name: String, fact_value: String) extends Rule[ReallyC
    * Sequence of objects generated for this event
    */
   def generateRuleMatch(user: User): Set[ReallyConvenientFactObject] = {
-    Set[ReallyConvenientFactObject](ReallyConvenientFactObject(user, Map[String, FactValue](this.fact_name -> StringFact(this.fact_value))))
+    Set[ReallyConvenientFactObject](ReallyConvenientFactObject(user, Map[String, FactValue](this.fact_name -> FactValue.StringValue(this.fact_value))))
   }
 }
 

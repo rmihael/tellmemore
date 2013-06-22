@@ -26,7 +26,7 @@ object Playground {
     userModel.bulkInsert(Set(User(UserId("rmihael@gmail.com", "m.korbakov@nimble.com"), "Some User", DateTime.now)))
     userModel.getAllByClientId("rmihael@gmail.com")
     userFactModel.setForUser(UserId("rmihael@gmail.com", "m.korbakov@nimble.com"),
-      Map("string_fact" -> StringFact("String value"), "numeric_fact" -> NumericFact(2.5)))
+      Map("string_fact" -> FactValue.StringValue("String value"), "numeric_fact" -> FactValue.NumericValue(2.5)))
 
     userModel.bulkInsert(Set(User(UserId("someid", "userid"), "Some User", DateTime.now)))
   }
