@@ -10,10 +10,10 @@ class FactsQueryAstSpec extends Specification {
   import FactsQueryAst._
 
   val ast = AndNode(Seq(
-              OrNode(Seq(Condition("fact", NumericFact(2.5), Moment.Now(DateTime.now)),
-                         Condition("fact2", StringFact("string"), Moment.Now(DateTime.now)))),
-              AndNode(Seq(Condition("fact3", NumericFact(5.5), Moment.Now(DateTime.now)),
-                          Condition("fact4", StringFact("string2"), Moment.Now(DateTime.now))))
+              OrNode(Seq(NumericEqual("fact", NumericFact(2.5), Moment.Now(DateTime.now)),
+                StringEqual("fact2", StringFact("string"), Moment.Now(DateTime.now)))),
+              AndNode(Seq(NumericEqual("fact3", NumericFact(5.5), Moment.Now(DateTime.now)),
+                StringEqual("fact4", StringFact("string2"), Moment.Now(DateTime.now))))
             ))
 
   "FactsQueryAst" should {

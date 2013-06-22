@@ -82,9 +82,13 @@ case class PostgreSqlUserFactDao(dataSource: DataSource) extends UserFactDao {
 
 private[userfacts] object queryTranslator {
   def apply(ast: FactsQueryAst, facts: Map[String, Long]): SqlAst = {
-    import tellmemore.queries.facts.FactsQueryAst.{AndNode, OrNode, Condition}
+    import tellmemore.queries.facts.FactsQueryAst._
+    import SqlAst._
     ast match {
-      case Condition(fact, value, moment) => BasicSql(SqlCondition(facts(fact), value, moment.tstamp))
+      case NumericEqual(fact, value, moment) => SqlNumericEquals(facts(fact), value, moment.tstamp)
+      case NumericGreaterThen(fact, value, moment) => SqlNumericGreaterThen(facts(fact), value, moment.tstamp)
+      case NumericLessThen(fact, value, moment) => SqlNumericLessThen(facts(fact), value, moment.tstamp)
+      case StringEqual(fact, value, moment) => SqlStringEquals(facts(fact), value, moment.tstamp)
       case OrNode(subqueries) => UnionSql(subqueries map {queryTranslator(_, facts)})
       case AndNode(subqueries) => IntersectionSql(subqueries map {queryTranslator(_, facts)})
     }

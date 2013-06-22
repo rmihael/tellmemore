@@ -51,9 +51,9 @@ private[facts] case class FactsQueryParser(timeProvider: TimeProvider) {
         val parsedValues = subqueries map {this(_)}
         processErrors(parsedValues).right map {FactsQueryAst.OrNode(_)}
       case JsObject(Seq((factName, JsString(value)))) =>
-        Right(FactsQueryAst.Condition(factName, StringFact(value), Moment.Now(timeProvider.now)))
+        Right(FactsQueryAst.StringEqual(factName, StringFact(value), Moment.Now(timeProvider.now)))
       case JsObject(Seq((factName, JsNumber(value)))) =>
-        Right(FactsQueryAst.Condition(factName, NumericFact(value.doubleValue()), Moment.Now(timeProvider.now)))
+        Right(FactsQueryAst.NumericEqual(factName, NumericFact(value.doubleValue()), Moment.Now(timeProvider.now)))
       case badValue => Left(Seq(badValue))
     }
   }

@@ -57,20 +57,20 @@ class FactsQueryModelSpec extends Specification with Mockito {
 
     "parse simple string fact condition" in {
       val str = """{"fact": "string"}"""
-      parse(Json.parse(str)) must beRight(FactsQueryAst.Condition("fact", StringFact("string"), Moment.Now(now)))
+      parse(Json.parse(str)) must beRight(FactsQueryAst.StringEqual("fact", StringFact("string"), Moment.Now(now)))
     }
 
     "parse simple numeric fact condition" in {
       val str = """{"fact": 2.5}"""
-      parse(Json.parse(str)) must beRight(FactsQueryAst.Condition("fact", NumericFact(2.5), Moment.Now(now)))
+      parse(Json.parse(str)) must beRight(FactsQueryAst.NumericEqual("fact", NumericFact(2.5), Moment.Now(now)))
     }
 
     "parse simple $and operator" in {
       val str = """{"$and": [{"fact": 2.5}, {"fact2": "string"}]}"""
       parse(Json.parse(str)) must beRight(
         FactsQueryAst.AndNode(Seq(
-          FactsQueryAst.Condition("fact", NumericFact(2.5), Moment.Now(now)),
-          FactsQueryAst.Condition("fact2", StringFact("string"), Moment.Now(now))
+          FactsQueryAst.NumericEqual("fact", NumericFact(2.5), Moment.Now(now)),
+          FactsQueryAst.StringEqual("fact2", StringFact("string"), Moment.Now(now))
         ))
       )
     }
@@ -79,8 +79,8 @@ class FactsQueryModelSpec extends Specification with Mockito {
       val str = """{"$or": [{"fact": 2.5}, {"fact2": "string"}]}"""
       parse(Json.parse(str)) must beRight(
         FactsQueryAst.OrNode(Seq(
-          FactsQueryAst.Condition("fact", NumericFact(2.5), Moment.Now(now)),
-          FactsQueryAst.Condition("fact2", StringFact("string"), Moment.Now(now))
+          FactsQueryAst.NumericEqual("fact", NumericFact(2.5), Moment.Now(now)),
+          FactsQueryAst.StringEqual("fact2", StringFact("string"), Moment.Now(now))
         ))
       )
     }
@@ -90,12 +90,12 @@ class FactsQueryModelSpec extends Specification with Mockito {
       parse(Json.parse(str)) must beRight(
         FactsQueryAst.AndNode(Seq(
           FactsQueryAst.OrNode(Seq(
-            FactsQueryAst.Condition("fact", NumericFact(2.5), Moment.Now(now)),
-            FactsQueryAst.Condition("fact2", StringFact("string"), Moment.Now(now))
+            FactsQueryAst.NumericEqual("fact", NumericFact(2.5), Moment.Now(now)),
+            FactsQueryAst.StringEqual("fact2", StringFact("string"), Moment.Now(now))
           )),
           FactsQueryAst.AndNode(Seq(
-            FactsQueryAst.Condition("fact3", NumericFact(5.5), Moment.Now(now)),
-            FactsQueryAst.Condition("fact4", StringFact("string2"), Moment.Now(now))
+            FactsQueryAst.NumericEqual("fact3", NumericFact(5.5), Moment.Now(now)),
+            FactsQueryAst.StringEqual("fact4", StringFact("string2"), Moment.Now(now))
           ))
         ))
       )
