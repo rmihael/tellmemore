@@ -65,5 +65,12 @@
         <constructor-arg ref="timeProvider"/>
     </bean>
 
+    <bean id="fakeDataGenerator" class="tellmemore.scripts.DataGenerator">
+        <constructor-arg ref="userModel"/>
+        <constructor-arg ref="clientModel"/>
+        <constructor-arg ref="eventModel"/>
+        <constructor-arg ref="userFactModel"/>
+    </bean>
+
     <context:component-scan base-package="tellmemore"/>
 </beans>

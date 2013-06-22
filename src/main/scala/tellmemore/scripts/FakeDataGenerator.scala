@@ -26,21 +26,11 @@ import tellmemore.userfacts.UserFactValues
  * data with params that we give is important to be able to test system and will be very
  * helpful especially on the first phases.
  */
-object DataGenerator {
+class DataGenerator(userModel: UserModel, clientModel: ClientModel,
+                    eventModel: EventModel, factModel: UserFactModel) {
   private var usersGenerated: Int = 0
-  private val clientId = "bestclient@example.com"
-  private val context = new ClassPathXmlApplicationContext(
-    "classpath*:/META-INF/spring-config.xml",
-    "classpath*:/META-INF/data-sources.xml"
-  )
-  val userModel = context.getBean("userModel").asInstanceOf[UserModel]
-  val clientModel = context.getBean("clientModel").asInstanceOf[ClientModel]
-  val eventModel = context.getBean("eventModel").asInstanceOf[EventModel]
-  val factModel = context.getBean("userFactModel").asInstanceOf[UserFactModel]
   val random = new Random()
-
-  // create a client Instance
-  clientModel.create(Client(clientId, "Vasya Puplin", DateTime.now))
+  private var clientId = ""
 
   // some internal state for
   var users: mutable.HashMap[UserId, User] = new mutable.HashMap[UserId, User]
@@ -137,6 +127,15 @@ object DataGenerator {
     if (usersLeft > 0) users_for_rule ++= saveUsers(usersLeft)
 
     users_for_rule.toSet
+  }
+
+  /**
+   * Creates a client with needed id. Must be called before any gen starts
+   * @param clientId
+   */
+  def createClient(clientId: String) {
+    clientModel.create(Client(clientId, "Vasya Pup;in", DateTime.now))
+    this.clientId = clientId
   }
 
   /**
@@ -295,24 +294,26 @@ object FakeDataGenerator {
    * Modify this function to get the needed set for you. Create similar methods
    * for different data sets.
    */
-  def generate() {
+  def generate(dataGenerator: DataGenerator) {
+    val clientId = "bestclient@example.com"
+    dataGenerator.createClient(clientId)
     val rule1 = new TotalEventRule("Cool event", _>_, 30)
     val rule2 = new TotalEventRule("Cool event", _<_, 5)
     val rule3 = new TotalEventRule("Second event", _>=_, 100)
-    DataGenerator.generateObjectsForRule(rule1, 5)
-    DataGenerator.generateObjectsForRule(rule2, 5)
-    DataGenerator.generateObjectsForRule(rule3, 10)
-    DataGenerator.generateObjectsForRule(new IntFactRule("Fact user", _>=_, 25), 25)
-    DataGenerator.generateObjectsForRule(new StringFactRule("String fact", "cool value"), 50)
-    val savedUsers = DataGenerator.userModel.getAllByClientId("bestclient@example.com")
-    println("Successfully saved " + savedUsers.toList.length.toString + " users")
-    val uniqueEventNames = DataGenerator.eventModel.getEventNames("bestclient@example.com")
-    println(uniqueEventNames.toString())
-    val uniqueEventFacts = DataGenerator.factModel.getUserFactsForClient("bestclient@example.com")
-    println(uniqueEventFacts.toString())
+    dataGenerator.generateObjectsForRule(rule1, 5)
+    dataGenerator.generateObjectsForRule(rule2, 5)
+    dataGenerator.generateObjectsForRule(rule3, 10)
+    dataGenerator.generateObjectsForRule(new IntFactRule("Fact user", _>=_, 25), 25)
+    dataGenerator.generateObjectsForRule(new StringFactRule("String fact", "cool value"), 50)
   }
+
+  def generateEvents(dataGenerator: DataGenerator, clientId: String, eventsMap: Map[String, Int]) {
+    dataGenerator.createClient(clientId)
+    eventsMap.foreach { case (name, amount) =>
+      dataGenerator.generateObjectsForRule(new TotalEventRule(name, _==_, amount), 1) }
+  }
+
   def main(args: Array[String]) {
-    generate()
   }
 
 }
