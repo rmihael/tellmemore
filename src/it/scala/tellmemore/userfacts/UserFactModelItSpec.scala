@@ -7,12 +7,9 @@ import org.specs2.specification.Scope
 import tellmemore.queries.facts.FactsQueryAst._
 import tellmemore.IntegrationTest
 import tellmemore.queries.Moment
-import tellmemore.queries.facts.FactsQueryAst.AndNode
 import tellmemore.users.{UserModel, User, UserId}
-import tellmemore.queries.facts.FactsQueryAst.NumericEqual
 import tellmemore.Client
 import tellmemore.clients.ClientModel
-import tellmemore.queries.facts.FactsQueryAst.OrNode
 import tellmemore.queries.facts.FactsQuery
 
 class UserFactModelItSpec extends IntegrationTest {
@@ -52,25 +49,25 @@ class UserFactModelItSpec extends IntegrationTest {
 
     "find users by single numeric equal" in new clientsAndUsers {
       userFactModel.setForUser(user.id, Map("fact" -> NumericFact(2.5)))
-      val ast = NumericEqual("fact", NumericFact(2.5), Moment.Now(DateTime.now))
+      val ast = NumericEqual("fact", 2.5, Moment.Now(DateTime.now))
       userFactModel.find(FactsQuery(client.id, ast)) must equalTo(Set(user.id.externalId))
     }
 
     "find users by single numeric greater then" in new clientsAndUsers {
       userFactModel.setForUser(user.id, Map("fact" -> NumericFact(2.5)))
-      val ast = NumericGreaterThen("fact", NumericFact(2.0), Moment.Now(DateTime.now))
+      val ast = NumericGreaterThen("fact", 2.0, Moment.Now(DateTime.now))
       userFactModel.find(FactsQuery(client.id, ast)) must equalTo(Set(user.id.externalId))
     }
 
     "find users by single numeric less then" in new clientsAndUsers {
       userFactModel.setForUser(user.id, Map("fact" -> NumericFact(2.5)))
-      val ast = NumericLessThen("fact", NumericFact(3.0), Moment.Now(DateTime.now))
+      val ast = NumericLessThen("fact", 3.0, Moment.Now(DateTime.now))
       userFactModel.find(FactsQuery(client.id, ast)) must equalTo(Set(user.id.externalId))
     }
 
     "find users by single string equal" in new clientsAndUsers {
       userFactModel.setForUser(user.id, Map("fact2" -> StringFact("value")))
-      val ast = StringEqual("fact2", StringFact("value"), Moment.Now(DateTime.now))
+      val ast = StringEqual("fact2", "value", Moment.Now(DateTime.now))
       userFactModel.find(FactsQuery(client.id, ast)) must equalTo(Set(user.id.externalId))
     }
 
@@ -78,16 +75,16 @@ class UserFactModelItSpec extends IntegrationTest {
     "find users by OR query" in new clientsAndUsers {
       userFactModel.setForUser(user.id, Map("fact" -> NumericFact(2.5), "fact2" -> StringFact("notstring")))
       val now = DateTime.now
-      val ast = OrNode(Seq(NumericEqual("fact", NumericFact(2.5), Moment.Now(now)),
-                           StringEqual("fact2", StringFact("string"), Moment.Now(now))))
+      val ast = OrNode(Seq(NumericEqual("fact", 2.5, Moment.Now(now)),
+                           StringEqual("fact2", "string", Moment.Now(now))))
       userFactModel.find(FactsQuery(client.id, ast)) must equalTo(Set(user.id.externalId))
     }
 
     "find users by AND query" in new clientsAndUsers {
       userFactModel.setForUser(user.id, Map("fact" -> NumericFact(2.5), "fact2" -> StringFact("string")))
       val now = DateTime.now
-      val ast = AndNode(Seq(NumericEqual("fact", NumericFact(2.5), Moment.Now(now)),
-                            StringEqual("fact2", StringFact("string"), Moment.Now(now))))
+      val ast = AndNode(Seq(NumericEqual("fact", 2.5, Moment.Now(now)),
+                            StringEqual("fact2", "string", Moment.Now(now))))
       userFactModel.find(FactsQuery(client.id, ast)) must equalTo(Set(user.id.externalId))
     }
 
@@ -96,10 +93,10 @@ class UserFactModelItSpec extends IntegrationTest {
                                             "fact3" -> NumericFact(5.5), "fact4" -> StringFact("string2")))
       val now = DateTime.now
       val ast = AndNode(Seq(
-        OrNode(Seq(NumericEqual("fact", NumericFact(2.5), Moment.Now(now)),
-                   StringEqual("fact2", StringFact("string"), Moment.Now(now)))),
-        AndNode(Seq(NumericEqual("fact3", NumericFact(5.5), Moment.Now(now)),
-                    StringEqual("fact4", StringFact("string2"), Moment.Now(now))))
+        OrNode(Seq(NumericEqual("fact", 2.5, Moment.Now(now)),
+                   StringEqual("fact2", "string", Moment.Now(now)))),
+        AndNode(Seq(NumericEqual("fact3", 5.5, Moment.Now(now)),
+                    StringEqual("fact4", "string2", Moment.Now(now))))
       ))
       val query = FactsQuery(client.id, ast)
       userFactModel.find(query) must equalTo(Set(user.id.externalId))
@@ -114,7 +111,7 @@ class UserFactModelItSpec extends IntegrationTest {
       userFactModel.setForUser(user.id, Map("fact2" -> StringFact("c")))
       userFactModel.setForUser(user2.id, Map("fact2" -> StringFact("d")))
 
-      val ast = StringEqual("fact2", StringFact("b"), Moment.Timestamp(now))
+      val ast = StringEqual("fact2", "b", Moment.Timestamp(now))
       val query = FactsQuery(client.id, ast)
       userFactModel.find(query) must equalTo(Set(user.id.externalId))
     }

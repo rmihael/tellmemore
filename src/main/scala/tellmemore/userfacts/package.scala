@@ -1,5 +1,7 @@
 package tellmemore
 
+import scala.language.implicitConversions
+
 import org.scala_tools.time.Imports._
 
 package object userfacts {
@@ -22,4 +24,7 @@ package object userfacts {
   case class UserFact(clientId: String, name: String, factType: FactType, created: DateTime)
 
   type UserFactValues = Map[String, FactValue]
+
+  implicit def double2NumericFact(d: Double): NumericFact = NumericFact(d)
+  implicit def string2StringFact(s: String): StringFact = StringFact(s)
 }

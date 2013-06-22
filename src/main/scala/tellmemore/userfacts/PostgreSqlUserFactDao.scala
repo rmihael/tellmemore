@@ -82,10 +82,10 @@ case class PostgreSqlUserFactDao(dataSource: DataSource) extends UserFactDao {
   private[this] def ast2sql(a: FactsQueryAst, facts: Map[String, Long]): String = {
     import tellmemore.queries.facts.FactsQueryAst._
     a match {
-      case NumericEqual(fact, value, moment) => makeSql(facts(fact), moment.tstamp, "numeric_value", value.value.toString, "=")
-      case NumericGreaterThen(fact, value, moment) => makeSql(facts(fact), moment.tstamp, "numeric_value", value.value.toString, ">")
-      case NumericLessThen(fact, value, moment) => makeSql(facts(fact), moment.tstamp, "numeric_value", value.value.toString, "<")
-      case StringEqual(fact, value, moment) => makeSql(facts(fact), moment.tstamp, "string_value", s"'${value.value}'", "=")
+      case NumericEqual(fact, value, moment) => makeSql(facts(fact), moment.tstamp, "numeric_value", value.toString, "=")
+      case NumericGreaterThen(fact, value, moment) => makeSql(facts(fact), moment.tstamp, "numeric_value", value.toString, ">")
+      case NumericLessThen(fact, value, moment) => makeSql(facts(fact), moment.tstamp, "numeric_value", value.toString, "<")
+      case StringEqual(fact, value, moment) => makeSql(facts(fact), moment.tstamp, "string_value", s"'$value'", "=")
       case OrNode(subqueries) => subqueries map {ast2sql(_, facts)} mkString " UNION "
       case AndNode(subqueries) => subqueries map {ast2sql(_, facts)} mkString " INTERSECT "
     }

@@ -3,7 +3,7 @@ package tellmemore.queries.facts
 import org.specs2.mutable.Specification
 import play.api.libs.json.Json
 
-import tellmemore.userfacts.{FactType, UserFact, NumericFact, StringFact}
+import tellmemore.userfacts.{FactType, UserFact}
 import tellmemore.userfacts.UserFactModel
 import org.specs2.mock.Mockito
 import org.joda.time.DateTime
@@ -47,6 +47,8 @@ class FactsQueryModelSpec extends Specification with Mockito {
   }
 
   "JSON parser" should {
+    import FactsQueryAst._
+
     val now = DateTime.now
     val parse = FactsQueryParser(FixedTimeProvider(now))
 
@@ -57,20 +59,20 @@ class FactsQueryModelSpec extends Specification with Mockito {
 
     "parse simple string fact condition" in {
       val str = """{"fact": "string"}"""
-      parse(Json.parse(str)) must beRight(FactsQueryAst.StringEqual("fact", StringFact("string"), Moment.Now(now)))
+      parse(Json.parse(str)) must beRight(FactsQueryAst.StringEqual("fact", "string", Moment.Now(now)))
     }
 
     "parse simple numeric fact condition" in {
       val str = """{"fact": 2.5}"""
-      parse(Json.parse(str)) must beRight(FactsQueryAst.NumericEqual("fact", NumericFact(2.5), Moment.Now(now)))
+      parse(Json.parse(str)) must beRight(FactsQueryAst.NumericEqual("fact", 2.5, Moment.Now(now)))
     }
 
     "parse simple $and operator" in {
       val str = """{"$and": [{"fact": 2.5}, {"fact2": "string"}]}"""
       parse(Json.parse(str)) must beRight(
         FactsQueryAst.AndNode(Seq(
-          FactsQueryAst.NumericEqual("fact", NumericFact(2.5), Moment.Now(now)),
-          FactsQueryAst.StringEqual("fact2", StringFact("string"), Moment.Now(now))
+          FactsQueryAst.NumericEqual("fact", 2.5, Moment.Now(now)),
+          FactsQueryAst.StringEqual("fact2", "string", Moment.Now(now))
         ))
       )
     }
@@ -79,8 +81,8 @@ class FactsQueryModelSpec extends Specification with Mockito {
       val str = """{"$or": [{"fact": 2.5}, {"fact2": "string"}]}"""
       parse(Json.parse(str)) must beRight(
         FactsQueryAst.OrNode(Seq(
-          FactsQueryAst.NumericEqual("fact", NumericFact(2.5), Moment.Now(now)),
-          FactsQueryAst.StringEqual("fact2", StringFact("string"), Moment.Now(now))
+          FactsQueryAst.NumericEqual("fact", 2.5, Moment.Now(now)),
+          FactsQueryAst.StringEqual("fact2", "string", Moment.Now(now))
         ))
       )
     }
@@ -90,12 +92,12 @@ class FactsQueryModelSpec extends Specification with Mockito {
       parse(Json.parse(str)) must beRight(
         FactsQueryAst.AndNode(Seq(
           FactsQueryAst.OrNode(Seq(
-            FactsQueryAst.NumericEqual("fact", NumericFact(2.5), Moment.Now(now)),
-            FactsQueryAst.StringEqual("fact2", StringFact("string"), Moment.Now(now))
+            FactsQueryAst.NumericEqual("fact", 2.5, Moment.Now(now)),
+            FactsQueryAst.StringEqual("fact2", "string", Moment.Now(now))
           )),
           FactsQueryAst.AndNode(Seq(
-            FactsQueryAst.NumericEqual("fact3", NumericFact(5.5), Moment.Now(now)),
-            FactsQueryAst.StringEqual("fact4", StringFact("string2"), Moment.Now(now))
+            FactsQueryAst.NumericEqual("fact3", 5.5, Moment.Now(now)),
+            FactsQueryAst.StringEqual("fact4", "string2", Moment.Now(now))
           ))
         ))
       )

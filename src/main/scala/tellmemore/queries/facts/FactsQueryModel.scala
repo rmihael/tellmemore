@@ -3,10 +3,10 @@ package tellmemore.queries.facts
 import play.api.libs.json.{Json, JsValue, JsArray, JsObject, JsString, JsNumber}
 import org.codehaus.jackson.JsonParseException
 
-import tellmemore.userfacts.{NumericFact, StringFact}
-import tellmemore.userfacts.UserFactModel
+import tellmemore.userfacts.{FactType, UserFactModel}
 import tellmemore.infrastructure.time.TimeProvider
 import tellmemore.queries.Moment
+import tellmemore.queries.facts.FactsQueryAst._
 
 case class FactsQueryModel(userFactModel: UserFactModel, timeProvider: TimeProvider) {
   val parser = FactsQueryParser(timeProvider)
@@ -37,12 +37,18 @@ case class FactsQueryModel(userFactModel: UserFactModel, timeProvider: TimeProvi
    */
   private[this] def validate(clientId: String, ast: FactsQueryAst): Boolean = {
     val facts = userFactModel.getUserFactsForClient(clientId)
-    ast map { cond => facts.get(cond.fact) exists { _.factType == cond.value.factType } } forall identity
+    ast map {
+      case StringEqual(fact, value, _) => facts.get(fact) exists { _.factType == FactType.String }
+      case NumericEqual(fact, value, _) => facts.get(fact) exists { _.factType == FactType.Numeric }
+      case NumericGreaterThen(fact, value, _) => facts.get(fact) exists { _.factType == FactType.Numeric }
+      case NumericLessThen(fact, value, _) => facts.get(fact) exists { _.factType == FactType.Numeric }
+    } forall identity
   }
 }
 
 private[facts] case class FactsQueryParser(timeProvider: TimeProvider) {
   def apply(unparsedQuery: JsValue): Either[Seq[JsValue], FactsQueryAst] = {
+    import FactsQueryAst._
     unparsedQuery match {
       case JsObject(Seq(("$and", JsArray(subqueries)))) if subqueries.size >= 2 =>
         val parsedValues = subqueries map {this(_)}
@@ -51,9 +57,9 @@ private[facts] case class FactsQueryParser(timeProvider: TimeProvider) {
         val parsedValues = subqueries map {this(_)}
         processErrors(parsedValues).right map {FactsQueryAst.OrNode(_)}
       case JsObject(Seq((factName, JsString(value)))) =>
-        Right(FactsQueryAst.StringEqual(factName, StringFact(value), Moment.Now(timeProvider.now)))
+        Right(StringEqual(factName, value, Moment.Now(timeProvider.now)))
       case JsObject(Seq((factName, JsNumber(value)))) =>
-        Right(FactsQueryAst.NumericEqual(factName, NumericFact(value.doubleValue()), Moment.Now(timeProvider.now)))
+        Right(NumericEqual(factName, value.doubleValue(), Moment.Now(timeProvider.now)))
       case badValue => Left(Seq(badValue))
     }
   }
