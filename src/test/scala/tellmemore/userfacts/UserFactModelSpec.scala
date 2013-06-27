@@ -32,7 +32,7 @@ class UserFactModelSpec extends Specification with Mockito {
 
     "create missing facts when doing setForUser" in {
       userFactDao.getByClientId("client@domain.com") returns Set()
-      val values = Map("string fact" -> FactValue.StringValue("string value"), "numeric fact" -> FactValue.NumericValue(1.0))
+      val values = Map("string fact" -> FactValue("string value"), "numeric fact" -> FactValue(1.0))
 
       userFactModel.setForUser(userId, values)
 
@@ -44,14 +44,14 @@ class UserFactModelSpec extends Specification with Mockito {
 
     "detect wrong types for fact values in setForUser" in {
       userFactDao.getByClientId("client@domain.com") returns facts
-      val values = Map("numeric fact" -> FactValue.StringValue("string value"), "string fact" -> FactValue.NumericValue(1.0))
+      val values = Map("numeric fact" -> FactValue("string value"), "string fact" -> FactValue(1.0))
 
       userFactModel.setForUser(userId, values) must beLeft(values)
     }
 
     "handle combination of existing and non-existing facts in setForUser" in {
       userFactDao.getByClientId("client@domain.com") returns facts
-      val values = Map("extra fact" -> FactValue.StringValue("string value"), "numeric fact" -> FactValue.NumericValue(1.0))
+      val values = Map("extra fact" -> FactValue("string value"), "numeric fact" -> FactValue(1.0))
 
       userFactModel.setForUser(userId, values) must beRight(values.size)
     }

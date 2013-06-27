@@ -16,7 +16,7 @@ case class PostgreSqlUserFactDao(dataSource: DataSource) extends UserFactDao {
   import UserFact._
 
   private[this] val simple =
-    get[Long]("facts.client_id") ~
+    get[String]("client_email") ~
     get[Int]("facts.fact_type") ~
     get[String]("facts.fact_name") ~
     get[Long]("facts.created") map {
@@ -35,7 +35,7 @@ case class PostgreSqlUserFactDao(dataSource: DataSource) extends UserFactDao {
 
   def getByClientId(clientId: String): Set[UserFact] = DB.withConnection(dataSource) { implicit connection =>
     SQL(
-      """SELECT client_id, fact_type, fact_name, created FROM facts
+      """SELECT {client_id} AS client_email, fact_type, fact_name, created FROM facts
          WHERE client_id=(SELECT id FROM clients WHERE email={client_id})""")
       .on("client_id" -> clientId)
       .as(simple *)

@@ -246,7 +246,7 @@ class IntFactRule(fact_name: String, operator: (Int, Int) => Boolean, threshold:
    * Sequence of objects generated for this event
    */
   def generateRuleMatch(user: User): Set[ReallyConvenientFactObject] = {
-    val s = ReallyConvenientFactObject(user, Map[String, FactValue](this.fact_name -> FactValue.NumericValue(this.getFactValue) ))
+    val s = ReallyConvenientFactObject(user, Map[String, FactValue](this.fact_name -> FactValue(this.getFactValue) ))
     Set[ReallyConvenientFactObject](s)
   }
 }
@@ -273,7 +273,7 @@ class StringFactRule(fact_name: String, fact_value: String) extends Rule[ReallyC
    * Sequence of objects generated for this event
    */
   def generateRuleMatch(user: User): Set[ReallyConvenientFactObject] = {
-    Set[ReallyConvenientFactObject](ReallyConvenientFactObject(user, Map[String, FactValue](this.fact_name -> FactValue.StringValue(this.fact_value))))
+    Set[ReallyConvenientFactObject](ReallyConvenientFactObject(user, Map[String, FactValue](this.fact_name -> FactValue(this.fact_value))))
   }
 }
 
